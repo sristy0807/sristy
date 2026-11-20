@@ -2,6 +2,17 @@
   "_howto": "Add one object per game. 'play' is a folder inside games/ (e.g. games/my-game/) or a full URL. Leave 'play' empty for projects without a web build; they show in the archive with a source link.",
   "featured": [
     {
+      "title": "Card School",
+      "year": 2026,
+      "engine": "HTML5 / JavaScript",
+      "description": "Learn to play cards from zero. Ten short levels go from suits and card order to tricks and trump, then full games of Call Bridge and 29 against computer players. Each trick explains who won and why, with animations, music and sound effects.",
+      "tags": ["Card game", "Learning", "Call Bridge", "29", "Mobile + desktop"],
+      "controls": "Tap or click a card to play it. Cards you're allowed to play lift up and glow.",
+      "play": "games/card-school/",
+      "source": "https://github.com/sristy0807/cardSchool",
+      "thumbnail": "games/card-school/cover.jpg"
+    },
+    {
       "title": "Dhaka Metaverse",
       "year": 2026,
       "engine": "Three.js",
