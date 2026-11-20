@@ -5,9 +5,9 @@
       "title": "Dhaka Metaverse",
       "year": 2026,
       "engine": "Three.js",
-      "description": "A 3D driving game on the real road network of central Dhaka. Take ride-share passengers, race bots and weave through rickshaws, CNGs and buses that drive on the left.",
-      "tags": ["Driving", "Open world", "Mobile + desktop"],
-      "controls": "W/S drive, A/D steer, Shift nitro, H horn. Touch controls on phones.",
+      "description": "A 3D driving game on the real road network of central Dhaka. Five modes (ride share, delivery rush, checkpoint sprint, free drive, circuit race against rival cars with different power), traffic that gives way when you honk, crash effects, and music from your own songs, internet radio or YouTube.",
+      "tags": ["Driving", "Open world", "Three.js", "Mobile + desktop"],
+      "controls": "W/S drive, A/D steer, Shift nitro, H horn, T back on the road. Touch controls on phones.",
       "play": "games/dhaka-metaverse/",
       "source": "https://github.com/sristy0807/dhakametaverse",
       "thumbnail": ""

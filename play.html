@@ -37,7 +37,7 @@
     const f = document.createElement('iframe');
     f.src = game;
     f.title = title;
-    f.allow = 'fullscreen; autoplay; gamepad; accelerometer; gyroscope; xr-spatial-tracking';
+    f.allow = 'fullscreen; autoplay; encrypted-media; picture-in-picture; gamepad; accelerometer; gyroscope; xr-spatial-tracking';
     f.allowFullscreen = true;
     document.body.appendChild(f);
     f.addEventListener('load', () => f.focus());
