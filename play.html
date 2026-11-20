@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Play — Sristy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; height: 100%; background: #0d171d; color: #e6ecea; font-family: "Bricolage Grotesque", system-ui, sans-serif; }
+  body { display: flex; flex-direction: column; }
+  .bar { display: flex; align-items: center; gap: 1rem; padding: .6rem 1rem; padding-top: max(.6rem, env(safe-area-inset-top)); }
+  .bar a, .bar button { color: #e6ecea; font: inherit; font-weight: 600; background: none; border: 2px solid #3a4a52; border-radius: 999px; padding: .35rem .9rem; text-decoration: none; cursor: pointer; }
+  .bar a:hover, .bar button:hover { border-color: #e5a634; }
+  .bar a:focus-visible, .bar button:focus-visible { outline: 3px solid #e5a634; outline-offset: 2px; }
+  .bar h1 { font-size: 1.1rem; margin: 0; flex: 1; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  iframe { flex: 1; width: 100%; border: 0; background: #000; }
+  .err { padding: 2rem; max-width: 60ch; }
+</style>
+</head>
+<body>
+<div class="bar">
+  <a href="./#games">Back</a>
+  <h1 id="title">Game</h1>
+  <button id="fs" type="button">Full screen</button>
+</div>
+<script>
+  const q = new URLSearchParams(location.search);
+  const game = q.get('game') || '';
+  const title = q.get('title') || 'Game';
+  document.getElementById('title').textContent = title;
+  document.title = title + ' — Sristy';
+
+  // Only allow folders inside games/ so the URL can't load arbitrary sites.
+  if (/^games\/[\w\-\/.]+$/.test(game) && !game.includes('..')) {
+    const f = document.createElement('iframe');
+    f.src = game;
+    f.title = title;
+    f.allow = 'fullscreen; autoplay; gamepad; accelerometer; gyroscope; xr-spatial-tracking';
+    f.allowFullscreen = true;
+    document.body.appendChild(f);
+    f.addEventListener('load', () => f.focus());
+    document.getElementById('fs').onclick = () => (f.requestFullscreen || f.webkitRequestFullscreen || (() => {})).call(f);
+  } else {
+    document.body.insertAdjacentHTML('beforeend', '<p class="err">That game could not be found. Go back and pick one from the list.</p>');
+    document.getElementById('fs').hidden = true;
+  }
+</script>
+</body>
+</html>

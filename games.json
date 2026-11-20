@@ -1,0 +1,28 @@
+{
+  "_howto": "Add one object per game. 'play' is a folder inside games/ (e.g. games/my-game/) or a full URL. Leave 'play' empty for projects without a web build; they show in the archive with a source link.",
+  "featured": [
+    {
+      "title": "Dhaka Metaverse",
+      "year": 2026,
+      "engine": "Three.js",
+      "description": "A 3D driving game on the real road network of central Dhaka. Take ride-share passengers, race bots and weave through rickshaws, CNGs and buses that drive on the left.",
+      "tags": ["Driving", "Open world", "Mobile + desktop"],
+      "controls": "W/S drive, A/D steer, Shift nitro, H horn. Touch controls on phones.",
+      "play": "games/dhaka-metaverse/",
+      "source": "https://github.com/sristy0807/dhakametaverse",
+      "thumbnail": ""
+    }
+  ],
+  "archive": [
+    { "title": "Penalty Shoot", "year": 2022, "engine": "Unity", "source": "https://github.com/sristy0807/PenaltyShoot", "play": "" },
+    { "title": "Cut Grass", "year": 2022, "engine": "Unity", "source": "https://github.com/sristy0807/CutGrass", "play": "" },
+    { "title": "Crossout Grid", "year": 2022, "engine": "Unity", "source": "https://github.com/sristy0807/CroussoutGrid", "play": "" },
+    { "title": "Food Puzzle", "year": 2022, "engine": "Unity", "source": "https://github.com/sristy0807/foodpuzzle", "play": "" },
+    { "title": "Missile Command", "year": 2021, "engine": "Unity", "source": "https://github.com/sristy0807/missilecommand", "play": "" },
+    { "title": "Rubik's Cube", "year": 2020, "engine": "Unity", "source": "https://github.com/sristy0807/rubikscube", "play": "" },
+    { "title": "Infinite Runner", "year": 2019, "engine": "Unity", "source": "https://github.com/sristy0807/InfiniteRunner", "play": "" },
+    { "title": "Ghost Run", "year": 2018, "engine": "Unity", "source": "https://github.com/sristy0807/GhostRun", "play": "" },
+    { "title": "Blindfold Cricket", "year": 2018, "engine": "Unity", "source": "https://github.com/sristy0807/BlindFoldCricket", "play": "" },
+    { "title": "AR Brochure", "year": 2019, "engine": "Unity AR", "source": "https://github.com/sristy0807/ARBrochure", "play": "" }
+  ]
+}
