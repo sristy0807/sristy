@@ -14,6 +14,20 @@
       "files": [
         "index.html"
       ]
+    },
+    {
+      "folder": "chess-school",
+      "repo": "sristy0807/chess",
+      "files": [
+        "index.html"
+      ]
+    },
+    {
+      "folder": "last-card",
+      "repo": "sristy0807/uno",
+      "files": [
+        "index.html"
+      ]
     }
   ]
 }

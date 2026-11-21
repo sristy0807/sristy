@@ -108,15 +108,9 @@ const ctrls = (list, i, label) => `<div class="head"><strong>${esc(label)}</stro
 // ---------- panels ----------
 const PANELS = {
   profile() {
-    return `<h2>Profile</h2><p class="hint">The text at the top and bottom of your site.</p>
+    return `<h2>Profile</h2><p class="hint">Your name at the top of the site, your links and the footer. The site shows your work, not a bio.</p>
       ${F('Name', 'content.name')}
-      ${F('Headline', 'content.headline', '', 'textarea')}
-      ${F('Intro paragraph', 'content.intro', '', 'textarea')}
       ${F('GitHub profile URL', 'content.github', '', 'input', 'type="url"')}
-      ${F('What I work with', 'content.skills', '', 'textarea')}
-      ${F('Clients line', 'content.clients', '', 'textarea')}
-      ${F('Education (one per line)', 'content.education', 'lines', 'textarea')}
-      ${F('Contact intro', 'content.contactIntro', '', 'textarea')}
       <h3 style="margin-top:2rem">Contact links</h3>
       <div data-listbox="content.links">${(data.content.links || []).map((l, i) => `<div class="item">${ctrls('content.links', i, l.label || 'New link')}
         <div class="grid2">${F('Text', `content.links.${i}.label`)}${F('Link (https://… or mailto:…)', `content.links.${i}.url`)}</div></div>`).join('')}</div>

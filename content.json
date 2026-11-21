@@ -1,7 +1,5 @@
 {
   "name": "Sristy",
-  "headline": "I build digital products",
-  "intro": "From casual games played inside telecom apps across Myanmar and Thailand to the DICOM module of an ultrasound imaging project, the thread is the same: pixels on a GPU that have to look right and run fast.",
   "github": "https://github.com/sristy0807",
   "work": [
     {
@@ -30,13 +28,6 @@
       "text": "Where it started: Unity games and 3D visualisation."
     }
   ],
-  "clients": "Clients over the years in Japan (Cybird, Laplace), Korea, the US, the Philippines, India, Myanmar and Thailand.",
-  "skills": "Unity3D and C#, Three.js and WebGL, GLSL/HLSL shaders and GPU profiling, Flutter, XR (AR and VR), DICOM and medical image visualisation, and lately LangChain and LangGraph for AI tooling.",
-  "education": [
-    "MSc in Data Science, United International University (in progress).",
-    "BSc in Computer Science and Engineering, KUET, 2013."
-  ],
-  "contactIntro": "Open to conversations about games, graphics, medical imaging and AI engineering roles.",
   "links": [
     {
       "label": "sristy0807@gmail.com",

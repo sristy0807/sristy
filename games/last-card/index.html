@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#c1121f">
+<title>Last Card</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* VOICE: loud, quick, family games night. IDEA: a red card-table with chunky four-colour cards.
+   COLOUR: table red #c1121f, card red #e3262f, yellow #fbd000, green #24a548, blue #1a6fd6, wild black #1b1b1b.
+   TYPE: Lilita One for numbers and titles, Nunito for everything else. LAYOUT: discard pile is the hero, hands around it. */
+:root{--table:#c1121f;--table2:#8f0b16;--R:#e3262f;--Y:#fbd000;--G:#24a548;--B:#1a6fd6;--K:#1b1b1b;--ink:#1b1b1b;--paper:#fff;--muted:#6b6b6b;
+  --cw:64px;--disp:"Lilita One",system-ui,sans-serif;--body:"Nunito",system-ui,sans-serif;--cur:var(--R)}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0;height:100%}
+body{background:var(--table) radial-gradient(110% 80% at 50% 35%,#e0242f 0,var(--table) 45%,var(--table2) 100%);color:#fff;font:600 17px/1.45 var(--body);-webkit-tap-highlight-color:transparent;overflow-x:clip}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle at 20% 15%,rgba(255,255,255,.08) 0 2px,transparent 3px) 0 0/34px 34px;opacity:.8}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:4px solid var(--Y);outline-offset:3px}
+#app{position:relative;max-width:1100px;margin:0 auto;min-height:100dvh;padding:max(env(safe-area-inset-top),12px) max(env(safe-area-inset-right),12px) max(env(safe-area-inset-bottom),10px) max(env(safe-area-inset-left),12px)}
+h1,h2,h3{font-family:var(--disp);font-weight:400;line-height:1.05;margin:0;letter-spacing:.01em}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:8px 18px;border-radius:999px;border:3px solid #fff;background:rgba(0,0,0,.15);font-weight:800}
+.btn:hover{background:rgba(0,0,0,.28)}.btn.icon{width:44px;padding:0}.btn:disabled{opacity:.4;cursor:not-allowed}
+.primary{min-height:52px;padding:10px 26px;border-radius:999px;border:3px solid #fff;background:var(--Y);color:var(--ink);font:400 22px var(--disp);box-shadow:0 5px 0 rgba(0,0,0,.35)}
+.primary:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(0,0,0,.35)}
+.link{background:none;border:0;color:#fff;text-decoration:underline;text-underline-offset:3px;min-height:44px;font-weight:800}
+.topbar{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.topbar .grow{flex:1;font:400 22px var(--disp);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chip{display:inline-flex;align-items:center;gap:6px;border:3px solid #fff;border-radius:999px;padding:4px 14px;font-weight:900;min-height:40px;background:rgba(0,0,0,.15)}
+.chip .st{color:var(--Y)}
+.panel{background:#fff;color:var(--ink);border-radius:22px;box-shadow:0 8px 0 rgba(0,0,0,.25),0 18px 40px rgba(0,0,0,.25)}
+.muted{color:var(--muted)}
+/* card */
+.card{--c:var(--K);position:relative;width:var(--cw);height:calc(var(--cw)*1.5);border-radius:calc(var(--cw)*.14);background:#fff;padding:calc(var(--cw)*.07);box-shadow:0 3px 8px rgba(0,0,0,.35);flex:none;border:0;display:block;color:#fff}
+.card .face{position:absolute;inset:calc(var(--cw)*.07);border-radius:calc(var(--cw)*.09);background:var(--c);overflow:hidden}
+.card .face::before{content:"";position:absolute;left:50%;top:50%;width:66%;aspect-ratio:1;background:rgba(255,255,255,.95);transform:translate(-50%,-50%) rotate(45deg);border-radius:14%}
+.card.wild .face{background:var(--K)}
+.card.wild .face::before{background:conic-gradient(var(--R) 0 25%,var(--B) 0 50%,var(--Y) 0 75%,var(--G) 0)}
+.card .big{position:absolute;inset:0;display:grid;place-items:center;font:400 calc(var(--cw)*.62)/1 var(--disp);color:var(--c);text-shadow:0 0 0 #000;-webkit-text-stroke:calc(var(--cw)*.025) #1b1b1b;paint-order:stroke fill;z-index:1;font-style:italic}
+.card.wild .big{color:#fff}
+.card .big svg{width:48%;height:48%;fill:var(--c);stroke:#1b1b1b;stroke-width:1.4;paint-order:stroke fill}
+.card.wild .big svg{fill:#fff}
+.card .tl,.card .br{position:absolute;font:400 calc(var(--cw)*.22)/1 var(--disp);color:#fff;-webkit-text-stroke:calc(var(--cw)*.012) #1b1b1b;paint-order:stroke fill;z-index:1;font-style:italic}
+.card .tl{left:calc(var(--cw)*.13);top:calc(var(--cw)*.1)}.card .br{right:calc(var(--cw)*.13);bottom:calc(var(--cw)*.1);transform:rotate(180deg)}
+.card .tl svg,.card .br svg{width:calc(var(--cw)*.2);height:calc(var(--cw)*.2);fill:#fff;stroke:#1b1b1b;stroke-width:1.5;paint-order:stroke fill}
+.card.back .face{background:var(--K)}
+.card.back .face::before{width:80%;aspect-ratio:1;background:var(--R);border-radius:50%;transform:translate(-50%,-50%) scaleY(1.25) rotate(-20deg)}
+.card.back .big{color:var(--Y);font-size:calc(var(--cw)*.3);transform:rotate(-20deg);font-style:normal}
+.card.sm{--cw:34px}
+/* menu */
+.menu{min-height:calc(100dvh - 22px);display:flex;flex-direction:column}
+.menubar{display:flex;align-items:center;gap:8px}
+.menumain{flex:1;display:grid;align-content:center;justify-items:center;gap:clamp(18px,4vh,40px);padding:10px 0}
+.brand{text-align:center;display:grid;justify-items:center}
+.fan{position:relative;height:calc(var(--fw)*1.65);width:calc(var(--fw)*3.4);--fw:clamp(60px,17vw,96px);margin-bottom:10px}
+.fan .card{--cw:var(--fw);position:absolute;left:50%;bottom:0;margin-left:calc(var(--fw)*-.5);transform-origin:50% 120%}
+.logo{font:400 clamp(58px,15vw,104px)/.9 var(--disp);transform:rotate(-4deg);text-shadow:0 6px 0 rgba(0,0,0,.3);-webkit-text-stroke:3px #1b1b1b;paint-order:stroke fill;color:var(--Y)}
+.logo span{color:#fff}
+.tag{margin:.6em 0 0;font-weight:800}.tag .bn{display:block;font-size:1.25em}
+.menubtns{display:grid;gap:12px;width:min(100%,390px)}
+.mbtn{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:58px;padding:12px 20px;border-radius:18px;border:3px solid #fff;background:rgba(0,0,0,.18);font:400 22px var(--disp);text-align:left}
+.mbtn small{font:700 14px var(--body);opacity:.92;text-align:right}
+.mbtn:hover:not(:disabled){background:rgba(0,0,0,.3)}.mbtn:disabled{opacity:.5;cursor:not-allowed}
+.mbtn.play{background:var(--Y);color:var(--ink);min-height:78px;font-size:34px;box-shadow:0 6px 0 rgba(0,0,0,.35)}
+.quick{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.quick .mbtn{flex-direction:column;align-items:flex-start;gap:0;font-size:20px}.quick .mbtn small{text-align:left}
+/* overlay */
+.overlay{position:fixed;inset:0;z-index:30;background:rgba(40,0,5,.55);backdrop-filter:blur(3px);display:grid;place-items:center;padding:16px;animation:fade .2s}
+.modal{width:min(100%,460px);max-height:90dvh;overflow:auto;padding:22px}
+.modal h2{font-size:30px;margin-bottom:8px}
+.modal .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.modal .btn{border-color:var(--ink);color:var(--ink);background:#fff}
+.modal .mbtn{width:100%;margin-top:10px;color:var(--ink);background:#f4f4f4;border-color:#1b1b1b;flex-direction:column;align-items:flex-start;gap:2px;font-size:22px}
+.modal .mbtn small{text-align:left;color:var(--muted)}
+.setrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:2px solid #eee}
+.setrow small{display:block;color:var(--muted);font-weight:600}
+.seg{display:flex;flex-wrap:wrap;background:#eee;border-radius:12px;padding:3px}
+.seg button{border:0;background:none;border-radius:9px;padding:6px 12px;min-height:38px;font-weight:800;color:var(--ink)}
+.seg button[aria-pressed=true]{background:var(--ink);color:#fff}
+.toggle{width:56px;height:32px;border-radius:999px;border:0;background:#ccc;position:relative;flex:none}
+.toggle::after{content:"";position:absolute;top:4px;left:4px;width:24px;height:24px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.toggle[aria-pressed=true]{background:var(--G)}.toggle[aria-pressed=true]::after{transform:translateX(24px)}
+.danger{color:var(--R)!important;border-color:var(--R)!important}
+.colors{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
+.colors button{height:96px;border-radius:18px;border:4px solid #fff;box-shadow:0 0 0 3px #1b1b1b;font:400 24px var(--disp);color:#fff;-webkit-text-stroke:1px #1b1b1b;paint-order:stroke fill}
+.colors .sug{outline:4px dashed #1b1b1b;outline-offset:4px}
+/* levels */
+.chapter{padding:16px clamp(12px,3vw,24px) 18px;margin-bottom:14px}
+.chap{display:flex;align-items:center;gap:10px;font-size:26px;margin-bottom:14px}
+.chap small{margin-left:auto;font:800 14px var(--body);color:var(--muted)}
+.chap .card{--cw:26px}
+.track{display:grid;grid-template-columns:repeat(var(--k),minmax(0,1fr));position:relative;gap:6px}
+.track::before{content:"";position:absolute;left:calc(50%/var(--k));right:calc(50%/var(--k));top:31px;height:5px;border-radius:3px;background:#eee}
+.node{background:none;border:0;padding:0;display:grid;justify-items:center;gap:6px;text-align:center;color:var(--ink)}
+.disc{width:62px;height:62px;border-radius:50%;display:grid;place-items:center;font:400 28px var(--disp);background:#fff;border:4px solid #1b1b1b;position:relative;z-index:1}
+.node.done .disc{background:var(--G);color:#fff}
+.node.now .disc{background:var(--Y);animation:bounce 1.2s ease-in-out infinite}
+.node.locked{cursor:not-allowed}.node.locked .disc{opacity:.45}
+.node .nt{font-weight:900;font-size:13px;line-height:1.2;max-width:12ch}
+.node .stars{font-size:14px;color:#e0a800;letter-spacing:1px}
+@keyframes bounce{50%{transform:translateY(-5px)}}
+@keyframes fade{from{opacity:0}}
+.lesson{padding:22px;max-width:680px;margin:0 auto}
+.lesson h2{font-size:34px;margin-bottom:8px}
+.lesson .row{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0;--cw:clamp(48px,13vw,64px)}
+.lesson .actions{margin-top:16px}
+</style>
+<style>
+/* table */
+body.scr-table{overflow:hidden}
+body.scr-table #app{height:100dvh;padding-top:max(env(safe-area-inset-top),8px)}
+.tbl{height:100%;display:flex;flex-direction:column;gap:6px}
+.tbl .topbar{margin:0}
+.opps{display:flex;justify-content:space-around;gap:8px;align-items:flex-start}
+.opp{display:grid;justify-items:center;gap:4px;padding:6px 10px;border-radius:16px;border:3px solid transparent;min-width:0}
+.opp.turn{border-color:#fff;background:rgba(0,0,0,.18);box-shadow:0 0 0 4px rgba(251,208,0,.5)}
+.opp .nm{font:400 18px var(--disp);display:flex;gap:6px;align-items:center}
+.opp .cnt{font:900 13px var(--body);background:#fff;color:var(--ink);border-radius:999px;padding:0 8px;min-width:24px;text-align:center}
+.opp .backs{display:flex;height:calc(var(--bw)*1.5);--bw:clamp(22px,6vw,34px)}
+.opp .backs .card{--cw:var(--bw);margin-left:calc(var(--bw)*-.62)}.opp .backs .card:first-child{margin-left:0}
+.opp .say{font:400 15px var(--disp);background:var(--Y);color:var(--ink);border-radius:999px;padding:2px 10px;border:2px solid #1b1b1b;animation:pop .4s}
+.mid{flex:1;min-height:0;display:grid;place-items:center;position:relative}
+.piles{display:flex;align-items:center;gap:clamp(18px,6vw,48px);position:relative}
+.pile{position:relative;border:0;background:none;padding:0}
+.pile.draw .card:nth-child(1){position:absolute;transform:translate(4px,4px)}.pile.draw .card:nth-child(2){position:absolute;transform:translate(2px,2px)}
+.pile.draw .card:nth-child(3){position:relative}
+.pile.draw.can{animation:nudge 1.4s ease-in-out infinite}
+@keyframes nudge{50%{transform:translateY(-6px)}}
+.pile.draw .lbl{position:absolute;left:50%;bottom:-26px;transform:translateX(-50%);font-weight:900;font-size:13px;white-space:nowrap}
+.disc-pile{position:relative;width:var(--cw);height:calc(var(--cw)*1.5)}
+.disc-pile .card{position:absolute;inset:0}
+.disc-pile .card.top{animation:land .35s cubic-bezier(.2,.9,.3,1.3)}
+@keyframes land{from{transform:translateY(-40px) scale(1.25) rotate(-12deg);opacity:.2}}
+.ring{position:absolute;inset:calc(var(--cw)*-.32);border-radius:50%;border:calc(var(--cw)*.09) solid var(--cur);box-shadow:0 0 24px var(--cur);opacity:.95;pointer-events:none}
+.dir{position:absolute;inset:calc(var(--cw)*-.75);pointer-events:none;opacity:.35;animation:spin 6s linear infinite}
+.dir.ccw{animation-direction:reverse}
+.dir svg{width:100%;height:100%}
+@keyframes spin{to{transform:rotate(360deg)}}
+.curcol{position:absolute;bottom:4px;left:50%;transform:translateX(-50%);font-weight:900;font-size:14px;background:rgba(0,0,0,.25);padding:2px 12px;border-radius:999px;white-space:nowrap}
+.status{min-height:26px;text-align:center;font-weight:900;font-size:16px;text-shadow:0 1px 0 rgba(0,0,0,.3)}
+.actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;min-height:52px;align-items:center}
+.lastbtn{background:var(--Y);color:var(--ink);border:4px solid #fff;border-radius:999px;font:400 26px var(--disp);padding:8px 26px;box-shadow:0 5px 0 rgba(0,0,0,.35);animation:pulse .8s ease-in-out infinite}
+@keyframes pulse{50%{transform:scale(1.08)}}
+@keyframes pop{from{transform:scale(.4)}}
+.me{display:flex;flex-direction:column;align-items:stretch}
+.me .meinfo{display:flex;justify-content:center;gap:10px;align-items:center;font:400 18px var(--disp)}
+.me.turn .meinfo .nm{background:#fff;color:var(--ink);padding:0 12px;border-radius:999px}
+.hand{container-type:inline-size;display:flex;justify-content:center;padding:22px 0 4px}
+.hand .card{transition:transform .15s}
+.hand .card+.card{margin-left:min(6px,calc((100cqw - 6px - var(--n)*var(--cw))/max(var(--n) - 1,1)))}
+.hand .card.ok{transform:translateY(-16px);box-shadow:0 0 0 3px #fff,0 0 18px var(--Y),0 6px 10px rgba(0,0,0,.35)}
+.hand .card.no{filter:brightness(.72)}
+.hand .card.new{animation:deal .35s ease-out}
+@keyframes deal{from{transform:translateY(-120px) scale(.8);opacity:0}}
+@media(hover:hover){.hand .card.ok:hover{transform:translateY(-26px)}}
+.score{font-size:15px;font-weight:800}
+.score table{width:100%;border-collapse:collapse;margin:10px 0}.score td,.score th{padding:6px 8px;border-bottom:2px solid #eee;text-align:left}.score td:last-child,.score th:last-child{text-align:right}
+.bigstars{font-size:46px;color:#e0a800;letter-spacing:6px;text-align:center}
+.center{text-align:center}
+/* quiz */
+.quiz{max-width:640px;margin:0 auto;padding:20px;text-align:center}
+.quiz .prompt{font:400 24px var(--disp);margin:0 0 12px}
+.quiz .show{display:flex;justify-content:center;gap:16px;align-items:center;margin:8px 0 14px;--cw:clamp(60px,18vw,84px)}
+.quiz .choices{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;--cw:clamp(52px,15vw,72px)}
+.quiz .choice{border:0;background:none;padding:0;border-radius:12px}
+.quiz .choice.txt{background:#f4f4f4;border:3px solid #1b1b1b;border-radius:14px;padding:12px 16px;font-weight:800;min-height:54px;width:100%;text-align:left;color:var(--ink)}
+.quiz .choice.right{outline:5px solid var(--G);outline-offset:3px}.quiz .choice.wrong{outline:5px solid var(--R);outline-offset:3px}.quiz .choice.dim{opacity:.45}
+.quiz .explain{margin-top:14px;padding:12px 14px;border-radius:14px;background:#f4f4f4;text-align:left}
+.quiz .explain.ok{background:#e6f6ea}.quiz .explain.no{background:#fdeaea}
+.dots{display:flex;gap:6px}.dots i{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.35)}.dots i.g{background:#8ef0a8}.dots i.r{background:#1b1b1b}.dots i.now{background:var(--Y)}
+@media(min-width:760px){.menumain{grid-template-columns:1.1fr 1fr;align-items:center}}
+@media(orientation:landscape) and (max-height:560px){
+  .menumain{grid-template-columns:1fr 1fr;align-items:center}
+  .fan{--fw:clamp(44px,12vh,70px)}.logo{font-size:clamp(44px,13vh,76px)}
+  .mbtn{min-height:46px;padding:8px 16px;font-size:19px}.mbtn.play{min-height:58px;font-size:28px}.menubtns,.quick{gap:8px}
+  .tbl{gap:2px}.tbl .topbar .btn{min-height:36px}.opp{padding:2px 8px}.opp .backs{--bw:22px}
+  .me{flex-direction:row;align-items:flex-end;gap:10px}.me .meinfo{flex-direction:column;margin-bottom:8px}.me .hand{flex:1;padding-top:16px}
+  .status{min-height:20px;font-size:14px}.actions{min-height:44px}
+  .pile.draw .lbl{display:none}
+  .tbl{position:relative}.actions{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(var(--cw)*1.5 + 30px);z-index:6;min-height:0}
+  .curcol{display:none}.ring{inset:calc(var(--cw)*-.16)}.dir{inset:calc(var(--cw)*-.36)}
+  .status::before{content:"";display:inline-block;width:.8em;height:.8em;border-radius:50%;background:var(--cur);border:2px solid #fff;margin-right:6px;vertical-align:-1px}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+{
+/* ---------- cards ---------- */
+const COLS=['R','Y','G','B'],CNAME={R:'Red',Y:'Yellow',G:'Green',B:'Blue',K:'Wild'};
+let cid=0;
+function newDeck(){const d=[];for(const c of COLS){d.push({c,v:'0',id:++cid});for(const v of['1','2','3','4','5','6','7','8','9','S','Rv','D2'])for(let k=0;k<2;k++)d.push({c,v,id:++cid});}
+  for(let k=0;k<4;k++){d.push({c:'K',v:'W',id:++cid});d.push({c:'K',v:'W4',id:++cid});}return shuffle(d);}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+const isWild=c=>c.c==='K';
+const pts=c=>/\d/.test(c.v)?+c.v:isWild(c)?50:20;
+const VNAME={S:'Skip',Rv:'Reverse',D2:'Draw Two',W:'Wild',W4:'Wild Draw Four'};
+const cardName=c=>isWild(c)?VNAME[c.v]:`${CNAME[c.c]} ${VNAME[c.v]||c.v}`;
+const ICON={S:'<svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 3.2a6.8 6.8 0 0 1 5.4 10.9L7.9 6.6A6.8 6.8 0 0 1 12 5.2zM6.6 7.9l9.5 9.5A6.8 6.8 0 0 1 6.6 7.9z"/></svg>',
+  Rv:'<svg viewBox="0 0 24 24"><path d="M4 9.5 9 4v3.5h7.5a3.5 3.5 0 0 1 0 7H15v-3h1.5a.5.5 0 0 0 0-1H9V14zM20 14.5 15 20v-3.5H7.5a3.5 3.5 0 0 1 0-7H9v3H7.5a.5.5 0 0 0 0 1H15V9z"/></svg>'};
+function cardHTML(c,o={}){if(o.back)return `<div class="card back ${o.cls||''}" aria-hidden="true"><div class="face"></div><div class="big">LAST</div></div>`;
+  const col=isWild(c)?'var(--K)':`var(--${c.c})`;
+  const big=c.v==='S'||c.v==='Rv'?ICON[c.v]:c.v==='D2'?'+2':c.v==='W4'?'+4':c.v==='W'?'':c.v;
+  const corner=c.v==='S'||c.v==='Rv'?ICON[c.v]:c.v==='D2'?'+2':c.v==='W4'?'+4':c.v==='W'?'W':c.v;
+  const tag=o.button?'button':'div';
+  return `<${tag} class="card ${isWild(c)?'wild':''} ${o.cls||''}" style="--c:${col};${o.style||''}" ${o.attr||''} aria-label="${cardName(c)}"><div class="face"></div><div class="big">${big}</div><span class="tl">${corner}</span><span class="br">${corner}</span></${tag}>`;}
+
+/* ---------- rules ---------- */
+const NAMES=['You','Rina','Tanvir','Mitu'];
+function canPlay(card,g){const top=g.discard[g.discard.length-1];
+  if(g.pending>0)return (card.v==='D2'&&top.v==='D2')||(card.v==='W4'&&top.v==='W4');
+  return isWild(card)||card.c===g.color||card.v===top.v;}
+const playable=(g,p)=>g.hands[p].filter(c=>canPlay(c,g));
+const nextP=(g,from=g.turn,steps=1)=>((from+g.dir*steps)%g.n+g.n)%g.n;
+function drawCards(g,p,k){const got=[];for(let i=0;i<k;i++){if(!g.deck.length){const top=g.discard.pop();g.deck=shuffle(g.discard.map(c=>isWild(c)?{...c}:c));g.discard=[top];}
+  if(!g.deck.length)break;const c=g.deck.pop();g.hands[p].push(c);got.push(c);}
+  if(g.saidLast)g.saidLast[p]=false;return got;}
+function newRoundState(g){g.deck=newDeck();g.hands=Array.from({length:g.n},()=>[]);for(let r=0;r<7;r++)for(let p=0;p<g.n;p++)g.hands[p].push(g.deck.pop());
+  let first;do{first=g.deck.pop();if(!/\d/.test(first.v)){g.deck.unshift(first);first=null;}}while(!first);
+  g.discard=[first];g.color=first.c;g.dir=1;g.pending=0;g.turn=(g.dealer+1)%g.n;g.saidLast=Array(g.n).fill(false);g.catchable=-1;g.drewThisTurn=null;g.phase='play';g.round=(g.round||0)+1;
+  sortHand(g);}
+function sortHand(g){const order={R:0,Y:1,G:2,B:3,K:4},vo=v=>/\d/.test(v)?+v:{S:10,Rv:11,D2:12,W:13,W4:14}[v];g.hands[0].sort((a,b)=>order[a.c]-order[b.c]||vo(a.v)-vo(b.v));}
+
+/* ---------- bots ---------- */
+function botChoose(g,p){const opts=playable(g,p);if(!opts.length)return null;const d=g.diff,hand=g.hands[p];
+  if(d===1)return opts[Math.floor(Math.random()*opts.length)];
+  const count={R:0,Y:0,G:0,B:0};for(const c of hand)if(!isWild(c))count[c.c]++;
+  const nx=nextP(g,p),nxLeft=g.hands[nx].length,leader=Math.min(...g.hands.map((h,i)=>i===p?99:h.length));
+  const score=c=>{let s=0;if(!isWild(c))s+=count[c.c]*3+(d===3?pts(c)/4:0);
+    if(['S','D2','Rv'].includes(c.v))s+=nxLeft<=2?30:nxLeft<=4?8:1;
+    if(c.v==='W4')s+=nxLeft<=2?40:-25;if(c.v==='W')s+=hand.length<=2?20:-20;
+    if(d===3&&leader<=2&&['S','D2','W4'].includes(c.v))s+=15;return s+Math.random()*2;};
+  return opts.sort((a,b)=>score(b)-score(a))[0];}
+function botColor(g,p){const count={R:0,Y:0,G:0,B:0};for(const c of g.hands[p])if(!isWild(c))count[c.c]+=g.diff===1?Math.random()*2:1+pts(c)/40;
+  return Object.entries(count).sort((a,b)=>b[1]-a[1])[0][1]>0?Object.entries(count).sort((a,b)=>b[1]-a[1])[0][0]:COLS[Math.floor(Math.random()*4)];}
+const sayChance=g=>g.diff===1?.6:g.diff===2?.88:1;
+/* ---------- storage + sound ---------- */
+const KEY='lastcard.v1',SAVE_KEY='lastcard.game.v1';
+const store={get(d){try{const v=localStorage.getItem(KEY);return v?{...d,...JSON.parse(v)}:d}catch(e){return d}},set(v){try{localStorage.setItem(KEY,JSON.stringify(v))}catch(e){}}};
+let progress=store.get({unlocked:1,stars:{},sound:true,stack:false,drawUntil:false,stats:{},opps:3,diff:2,len:'round'});
+function complete(id,stars){progress.stars[id]=Math.max(progress.stars[id]||0,stars);progress.unlocked=Math.max(progress.unlocked,Math.min(LEVELS.length,id+1));store.set(progress);}
+function setSkill(k){progress.skill=k;if(k==='pro')progress.unlocked=LEVELS.length;store.set(progress);}
+const totalStars=()=>Object.values(progress.stars).reduce((a,b)=>a+b,0);
+function saveGame(){if(!G||G.phase==='over'||G.phase==='summary')return;try{localStorage.setItem(SAVE_KEY,JSON.stringify({...G,id:0,anim:null,newIds:[]}));}catch(e){}}
+function loadSave(){try{const v=JSON.parse(localStorage.getItem(SAVE_KEY));return v&&v.hands?v:null;}catch(e){return null;}}
+function clearSave(){try{localStorage.removeItem(SAVE_KEY);}catch(e){}}
+function recordResult(won){const s=progress.stats.rounds=progress.stats.rounds||{played:0,won:0};s.played++;if(won)s.won++;store.set(progress);}
+let AC=null;
+function tone(f,d=.1,type='square',v=.06,when=0){if(!progress.sound)return;try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();const t=AC.currentTime+when,o=AC.createOscillator(),gn=AC.createGain();o.type=type;o.frequency.setValueAtTime(f,t);gn.gain.setValueAtTime(v,t);gn.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(gn).connect(AC.destination);o.start(t);o.stop(t+d+.02);}catch(e){}}
+const sfx={play:()=>{tone(520,.06,'triangle',.12);tone(780,.08,'triangle',.08,.04)},draw:()=>tone(300,.07,'triangle',.1),action:()=>{tone(660,.07);tone(880,.09,'square',.05,.07)},
+  last:()=>[784,988,1175].forEach((f,i)=>tone(f,.12,'square',.06,i*.08)),bad:()=>tone(150,.25,'sawtooth',.05),
+  win:()=>[523,659,784,1047,1319].forEach((f,i)=>tone(f,.2,'triangle',.1,i*.1)),lose:()=>[440,349,262].forEach((f,i)=>tone(f,.28,'triangle',.08,i*.15)),good:()=>{tone(660,.08,'triangle',.1);tone(990,.12,'triangle',.1,.08)}};
+
+/* ---------- lessons ---------- */
+const C=(c,v)=>({c,v,id:0});
+const LV=(id,group,title,type,o)=>({id,group,title,type,...o});
+const LEVELS=[
+ LV(1,'Basics','Match it','match',{n:8,pass:6,lesson:()=>`<p>Everyone starts with 7 cards. Get rid of all yours first to win.</p><p>On your turn, play one card that matches the top card by <b>colour</b> or by <b>number</b>.</p>
+   <div class="row">${cardHTML(C('B','7'))}<span style="align-self:center">matches</span>${cardHTML(C('B','2'))}${cardHTML(C('Y','7'))}</div><p>Can't match? Draw a card from the pile.</p>`}),
+ LV(2,'Basics','Action cards','action',{n:6,pass:5,lesson:()=>`<div class="row">${cardHTML(C('R','S'))}${cardHTML(C('G','Rv'))}${cardHTML(C('Y','D2'))}</div>
+   <p><b>Skip</b>: the next player misses their turn. <b>Reverse</b>: play changes direction (with only two players it works like Skip). <b>Draw Two</b>: the next player picks up 2 cards and misses their turn.</p><p>Action cards match by colour, or by the same symbol.</p>`}),
+ LV(3,'Basics','Wild cards','wild',{n:6,pass:4,lesson:()=>`<div class="row">${cardHTML(C('K','W'))}${cardHTML(C('K','W4'))}</div><p>A <b>Wild</b> can go on anything. You choose the colour that has to be played next.</p>
+   <p><b>Wild Draw Four</b> does the same, and the next player also picks up 4 cards and misses their turn.</p><p>Tip: choose the colour you have most of.</p>`}),
+ LV(4,'Play','Last card!','game',{n:2,diff:1,lesson:()=>`<p>When you play your second-to-last card, tap <b>Last card!</b> straight away. Forget, and you pick up 2 cards.</p>
+   <p>If a bot forgets, tap <b>Catch!</b> on them before the next player moves, and they pick up 2.</p><p>Now play a round against Rina.</p>`}),
+ LV(5,'Play','Full table','game',{n:4,diff:2,lesson:()=>`<p>A real round against three players. Watch who is running low on cards, and save your action cards for them.</p><p>Win the round for three stars.</p>`})];
+
+/* ---------- shell ---------- */
+const app=document.getElementById('app');
+let screen='home',cur=null,G=null,Q=null,modal=null,modalData=null,resetArm=false,gid=0;
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const GEAR='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></svg>';
+const SOUND=()=>`<button class="btn icon" id="snd" aria-label="Sound ${progress.sound?'on':'off'}" aria-pressed="${progress.sound}">${progress.sound?'🔊︎':'🔈︎'}</button>`;
+const starChip=()=>`<span class="chip"><span class="st">★</span>${totalStars()} / ${LEVELS.length*3}</span>`;
+function go(s){screen=s;modal=null;render();scrollTo(0,0);}
+function sizeCards(){const w=innerWidth,h=innerHeight,land=w>h;const cw=land?Math.min(h/(h<560?6.6:7.2),w/11,96):Math.min(w/5.6,h/9.6,92);document.documentElement.style.setProperty('--cw',Math.max(40,Math.round(cw))+'px');}
+function render(){document.body.className='scr-'+screen;({home:renderHome,levels:renderLevels,lesson:renderLesson,quiz:renderQuiz,table:renderTable})[screen]();renderModal();}
+function bindCommon(){const on=(id,f)=>{const e=document.getElementById(id);if(e)e.onclick=f;};
+  on('snd',()=>{progress.sound=!progress.sound;store.set(progress);render();});on('settings',()=>{modal='settings';render();});
+  app.querySelectorAll('[data-act=levels]').forEach(b=>b.onclick=()=>{G=null;go('levels');});app.querySelectorAll('[data-act=menu]').forEach(b=>b.onclick=()=>{G=null;go('home');});}
+const topbar=(title,extra='',back='levels')=>`<div class="topbar"><button class="btn" data-act="${back}" aria-label="Back">←</button><span class="grow">${title}</span>${extra}${SOUND()}</div>`;
+
+/* ---------- modals ---------- */
+function renderModal(){const old=document.getElementById('ov');if(old)old.remove();if(!modal)return;let h='';
+  const seg=(key,opts)=>`<div class="seg">${opts.map(([v,n])=>`<button data-k="${key}" data-v="${v}" aria-pressed="${String(progress[key])===String(v)}">${n}</button>`).join('')}</div>`;
+  if(modal==='welcome')h=`<h2>Played this game before?</h2><p class="muted">Your progress is saved on this device, so you can stop and carry on later.</p>
+    <button class="mbtn" data-skill="new">I'm new<small>Learn matching, action cards and wilds first</small></button>
+    <button class="mbtn" data-skill="pro">I know how to play<small>Go straight to a game. Lessons stay open.</small></button>`;
+  if(modal==='settings')h=`<h2>Settings</h2>
+    <div class="setrow"><span>Sound</span><button class="toggle" data-tg="sound" aria-pressed="${progress.sound}" aria-label="Sound"></button></div>
+    <div class="setrow"><span>Stack +2 and +4<small>Pass the pick-up on to the next player</small></span><button class="toggle" data-tg="stack" aria-pressed="${progress.stack}" aria-label="Stacking"></button></div>
+    <div class="setrow"><span>Draw until you can play<small>Off: draw one card</small></span><button class="toggle" data-tg="drawUntil" aria-pressed="${progress.drawUntil}" aria-label="Draw until playable"></button></div>
+    <div class="setrow"><span>Experience</span><div class="seg"><button data-skillset="new" aria-pressed="${progress.skill!=='pro'}">Learning</button><button data-skillset="pro" aria-pressed="${progress.skill==='pro'}">I know it</button></div></div>
+    <div class="setrow"><span>Progress<small>Saved in this browser</small></span><button class="btn danger" id="reset">${resetArm?'Tap again to erase':'Reset'}</button></div>
+    <div class="row"><button class="primary" id="closem">Done</button></div>`;
+  if(modal==='newgame')h=`<h2>New game</h2>
+    <div class="setrow"><span>Opponents</span>${seg('opps',[[1,'1'],[2,'2'],[3,'3']])}</div>
+    <div class="setrow"><span>Bots</span>${seg('diff',[[1,'Easy'],[2,'Normal'],[3,'Hard']])}</div>
+    <div class="setrow"><span>Length</span>${seg('len',[['round','One round'],['200','First to 200']])}</div>
+    <div class="row"><button class="primary" id="startq">Deal</button><button class="btn" id="closem">Cancel</button></div>`;
+  if(modal==='color'){const sug=botColor({hands:[G.hands[0]],diff:3},0);h=`<h2>Pick a colour</h2><p class="muted">Suggested: ${CNAME[sug]}, you have the most of it.</p><div class="colors">${COLS.map(c=>`<button data-col="${c}" class="${c===sug?'sug':''}" style="background:var(--${c})">${CNAME[c]}</button>`).join('')}</div>`;}
+  if(modal==='result')h=modalData.html;
+  const ov=document.createElement('div');ov.className='overlay';ov.id='ov';ov.innerHTML=`<div class="modal panel" role="dialog" aria-modal="true">${h}</div>`;document.body.appendChild(ov);
+  const on=(id,f)=>{const e=ov.querySelector('#'+id);if(e)e.onclick=f;};
+  ov.onclick=e=>{if(e.target===ov&&(modal==='settings'||modal==='newgame')){modal=null;resetArm=false;render();}};
+  on('closem',()=>{modal=null;resetArm=false;render();});
+  ov.querySelectorAll('[data-tg]').forEach(b=>b.onclick=()=>{progress[b.dataset.tg]=!progress[b.dataset.tg];store.set(progress);render();});
+  ov.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{const v=b.dataset.v;progress[b.dataset.k]=/^\d$/.test(v)?+v:v;store.set(progress);render();});
+  ov.querySelectorAll('[data-skillset]').forEach(b=>b.onclick=()=>{setSkill(b.dataset.skillset);render();});
+  ov.querySelectorAll('[data-skill]').forEach(b=>b.onclick=()=>{setSkill(b.dataset.skill);modal=null;if(b.dataset.skill==='new')openLevel(1);else render();});
+  on('reset',()=>{if(resetArm){progress={...progress,unlocked:1,stars:{},stats:{},skill:undefined};store.set(progress);clearSave();resetArm=false;modal=null;}else resetArm=true;render();});
+  on('startq',()=>startGame({n:progress.opps+1,diff:progress.diff,target:progress.len==='200'?200:0}));
+  ov.querySelectorAll('[data-col]').forEach(b=>b.onclick=()=>{const f=modalData.done;modal=null;f(b.dataset.col);});
+  if(modal==='result'&&modalData.bind)modalData.bind(ov);
+  const first=ov.querySelector('button');if(first)first.focus({preventScroll:true});}
+
+/* ---------- menu, lessons ---------- */
+function renderHome(){G=null;const sv=loadSave(),pro=progress.skill==='pro',started=totalStars()>0,done=Object.keys(progress.stars).length;
+  const open=LEVELS.filter(l=>l.id<=progress.unlocked),nx=open.find(l=>!progress.stars[l.id])||open[open.length-1],free=pro||progress.unlocked>=LEVELS.length;
+  const st=progress.stats.rounds;let primary;
+  if(sv)primary=`<button class="mbtn play" id="resume">Resume<small>${sv.n-1} opponent${sv.n>2?'s':''}<br>${sv.hands[0].length} cards in hand</small></button>`;
+  else if(pro)primary=`<button class="mbtn play js-new">Play<small>${st&&st.played?`Won ${st.won} of ${st.played}`:'vs bots'}</small></button>`;
+  else primary=`<button class="mbtn play" id="cont">${started?'Continue':'Start'}<small>Lesson ${nx.id}<br>${esc(nx.title)}</small></button>`;
+  const fan=[C('R','7'),C('Y','S'),C('K','W4'),C('G','Rv'),C('B','D2')];
+  app.innerHTML=`<div class="menu"><div class="menubar">${starChip()}<span style="flex:1"></span>${SOUND()}<button class="btn icon" id="settings" aria-label="Settings">${GEAR}</button></div>
+    <div class="menumain"><div class="brand"><div class="fan">${fan.map((c,i)=>cardHTML(c,{style:`transform:rotate(${(i-2)*14}deg) translateY(${Math.abs(i-2)*5}px)`})).join('')}</div>
+      <h1 class="logo">Last <span>Card</span></h1><p class="tag"><span class="bn">শেষ তাস</span>Match colours, play action cards, empty your hand first</p></div>
+      <div class="menubtns">${primary}
+        <div class="quick"><button class="mbtn" data-quick="4" ${free?'':'disabled'}>Full table<small>${free?'3 bots':'🔒 After the lessons'}</small></button><button class="mbtn" data-quick="2" ${free?'':'disabled'}>Duel<small>${free?'1 bot':'🔒 After the lessons'}</small></button></div>
+        <button class="mbtn" id="lv">Lessons<small>${done} of ${LEVELS.length} done</small></button>${free&&!pro&&!sv?'':''}</div></div></div>`;
+  bindCommon();const on=(id,f)=>{const e=document.getElementById(id);if(e)e.onclick=f;};
+  on('resume',resumeGame);on('cont',()=>openLevel(nx.id));on('lv',()=>go('levels'));
+  app.querySelectorAll('.js-new').forEach(b=>b.onclick=()=>{modal='newgame';render();});
+  app.querySelectorAll('[data-quick]').forEach(b=>b.onclick=()=>startGame({n:+b.dataset.quick,diff:progress.diff,target:0}));
+  if(!progress.skill&&!started&&!sv&&!modal)modal='welcome';}
+function renderLevels(){const groups=[...new Set(LEVELS.map(l=>l.group))],open=LEVELS.filter(l=>l.id<=progress.unlocked),nx=open.find(l=>!progress.stars[l.id]);
+  const icon={Basics:C('Y','7'),Play:C('K','W')};
+  app.innerHTML=`${topbar('Lessons',starChip(),'menu')}${groups.map(g=>{const ls=LEVELS.filter(l=>l.group===g),got=ls.reduce((a,l)=>a+(progress.stars[l.id]||0),0);
+    return `<section class="chapter panel"><h2 class="chap">${cardHTML(icon[g])}${g}<small>★ ${got} / ${ls.length*3}</small></h2><div class="track" style="--k:${ls.length}">${ls.map(l=>{const locked=l.id>progress.unlocked,s=progress.stars[l.id]||0,state=locked?'locked':nx&&l.id===nx.id?'now':s?'done':'open';
+      return `<button class="node ${state}" data-lvl="${l.id}" ${locked?'disabled':''} aria-label="Lesson ${l.id}: ${esc(l.title)}${locked?', locked':''}"><span class="disc">${locked?'🔒︎':l.id}</span><span class="nt">${esc(l.title)}</span><span class="stars">${'★'.repeat(s)}${'☆'.repeat(3-s)}</span></button>`;}).join('')}</div></section>`;}).join('')}`;
+  bindCommon();app.querySelectorAll('[data-lvl]').forEach(b=>b.onclick=()=>openLevel(+b.dataset.lvl));}
+function openLevel(id){cur=LEVELS[id-1];go('lesson');}
+function renderLesson(){app.innerHTML=`${topbar(`Lesson ${cur.id}`)}<div class="lesson panel"><h2>${esc(cur.title)}</h2>${cur.lesson()}<div class="actions"><button class="primary" id="go">${cur.type==='game'?'Deal the cards':'Start'}</button></div></div>`;
+  bindCommon();document.getElementById('go').onclick=startLevel;}
+function startLevel(){if(cur.type==='game')return startGame({n:cur.n,diff:cur.diff,target:0,lvl:cur.id});Q={i:0,ok:0,hist:[],q:genQ()};go('quiz');}
+/* ---------- quizzes ---------- */
+const rc=()=>pick(COLS),rn=()=>String(Math.floor(Math.random()*10));
+function genQ(){
+  if(cur.type==='match'){const top=C(rc(),rn());const good=Math.random()<.5?C(top.c,rn()):C(pick(COLS.filter(c=>c!==top.c)),top.v);
+    const bad=[];while(bad.length<3){const c=C(pick(COLS.filter(x=>x!==top.c)),rn());if(c.v!==top.v&&!bad.some(b=>b.c===c.c&&b.v===c.v))bad.push(c);}
+    const ch=shuffle([{card:good,ok:true},...bad.map(b=>({card:b,ok:false}))]);
+    return {prompt:'Which card can you play?',show:cardHTML(top),choices:ch.map(x=>({html:cardHTML(x.card),ok:x.ok,card:true})),explain:`${cardName(good)} matches the ${good.c===top.c?'colour':'number'} of ${cardName(top)}.`};}
+  if(cur.type==='action'){const pool=[
+      {card:C('R','S'),q:'You play this card. What happens?',a:'The next player misses their turn',w:['The direction of play changes','Everyone draws a card','You play again with any colour']},
+      {card:C('G','Rv'),q:'Four players. You play this. Who goes next?',a:'The player before you, as the direction flips',w:['The next player as normal','You go again','The player across from you']},
+      {card:C('B','Rv'),q:'Only two players. What does Reverse do?',a:'It works like Skip, so you go again',w:['Nothing happens','Your opponent draws 2','The round ends']},
+      {card:C('Y','D2'),q:'You play this. What happens to the next player?',a:'They pick up 2 cards and miss their turn',w:['They pick up 2 cards, then take their turn','They choose the next colour','They skip but draw nothing']},
+      {card:C('K','W'),q:'When can you play a Wild?',a:'On any card, then you choose the colour',w:['Only on a black card','Only when you have no other card','Only as your last card']},
+      {card:C('K','W4'),q:'You play this. What happens?',a:'You choose a colour; next player picks up 4 and misses a turn',w:['Everyone picks up 4','Next player picks up 4 and chooses the colour','You pick up 4']},
+      {card:C('R','S'),q:'The top card is a Green Skip. Can you play a Red Skip on it?',a:'Yes, the symbol matches',w:['No, the colour is different','Only if you also say Last card','Only with two players']}];
+    const used=Q&&Q.used||[];const left=pool.filter((_,i)=>!used.includes(i));const i=pool.indexOf(pick(left.length?left:pool));if(Q)Q.used=[...used,i];const p=pool[i];
+    return {prompt:p.q,show:cardHTML(p.card),choices:shuffle([{html:p.a,ok:true},...p.w.map(w=>({html:w,ok:false}))]),explain:p.a+'.'};}
+  /* wild: pick the best colour for this hand */
+  const hand=[];const best=rc();for(let i=0;i<3;i++)hand.push(C(best,rn()));const others=COLS.filter(c=>c!==best);for(let i=0;i<3;i++)hand.push(C(others[i%3],rn()));
+  if(Math.random()<.5)hand.push(C('K','W'));shuffle(hand);
+  return {prompt:'You play a Wild. Which colour should you pick?',show:`<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;--cw:clamp(40px,11vw,56px)">${hand.map(c=>cardHTML(c)).join('')}</div>`,
+    choices:COLS.map(c=>({html:`<span style="display:inline-block;width:1em;height:1em;border-radius:50%;background:var(--${c});border:2px solid #1b1b1b;vertical-align:-2px"></span> ${CNAME[c]}`,ok:c===best})),explain:`You have three ${CNAME[best].toLowerCase()} cards, so picking ${CNAME[best]} lets you keep playing.`};}
+function renderQuiz(){if(Q.done)return renderQuizResult();const q=Q.q;
+  const dots=`<div class="dots">${Array.from({length:cur.n},(_,i)=>`<i class="${i<Q.i?(Q.hist[i]?'g':'r'):i===Q.i?'now':''}"></i>`).join('')}</div>`;
+  app.innerHTML=`${topbar(esc(cur.title),dots)}<div class="quiz panel"><p class="prompt">${q.prompt}</p><div class="show">${q.show}</div>
+    <div class="choices">${q.choices.map((c,i)=>`<button class="choice ${c.card?'':'txt'} ${Q.answered?(c.ok?'right':Q.pick===i?'wrong':'dim'):''}" data-i="${i}" ${Q.answered?'disabled':''}>${c.html}</button>`).join('')}</div>
+    ${Q.answered?`<div class="explain ${Q.lastOk?'ok':'no'}"><b>${Q.lastOk?pick(['Correct!','Nice!','Yes!']):'Not quite.'}</b> ${q.explain}</div><p><button class="primary" id="next">${Q.i+1<cur.n?'Next':'Finish'}</button></p>`:''}
+    <button class="link" id="rl" style="color:var(--ink)">Read the lesson again</button></div>`;
+  bindCommon();document.getElementById('rl').onclick=()=>go('lesson');
+  app.querySelectorAll('.choice').forEach(b=>b.onclick=()=>{if(Q.answered)return;const i=+b.dataset.i;Q.answered=true;Q.pick=i;Q.lastOk=q.choices[i].ok;Q.hist.push(Q.lastOk);if(Q.lastOk){Q.ok++;sfx.good();}else sfx.bad();render();});
+  const n=document.getElementById('next');if(n)n.onclick=()=>{Q.i++;Q.answered=false;if(Q.i>=cur.n)Q.done=true;else Q.q=genQ();render();};}
+function renderQuizResult(){const pass=Q.ok>=cur.pass,stars=Q.ok===cur.n?3:Q.ok>=cur.n-1?2:1;if(pass&&!Q.saved){Q.saved=true;complete(cur.id,stars);sfx.win();}
+  app.innerHTML=`${topbar(esc(cur.title))}<div class="quiz panel"><h2>${pass?'Lesson passed!':'Almost there'}</h2><p>You got <b>${Q.ok}</b> of ${cur.n} right.${pass?'':` You need ${cur.pass}.`}</p>${pass?`<div class="bigstars">${'★'.repeat(stars)}${'☆'.repeat(3-stars)}</div>`:''}
+    <p style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">${pass&&cur.id<LEVELS.length?'<button class="primary" id="nx">Next lesson</button>':''}<button class="btn" id="ag" style="color:var(--ink);border-color:var(--ink);background:#fff">Try again</button></p></div>`;
+  bindCommon();const on=(id,f)=>{const e=document.getElementById(id);if(e)e.onclick=f;};on('nx',()=>openLevel(cur.id+1));on('ag',startLevel);}
+
+/* ---------- the table ---------- */
+function later(fn,ms){const id=G&&G.id;setTimeout(()=>{if(G&&G.id===id&&screen==='table')fn();},ms);}
+function startGame(o){clearSave();modal=null;G={id:++gid,n:o.n,diff:o.diff,target:o.target||0,lvl:o.lvl||null,scores:Array(o.n).fill(0),dealer:Math.floor(Math.random()*o.n),round:0,stack:progress.stack,drawUntil:progress.drawUntil,msg:'',say:{},newIds:[]};
+  if(o.lvl)cur=LEVELS[o.lvl-1];newRoundState(G);G.msg=G.turn===0?'You start. Play a glowing card.':`${NAMES[G.turn]} starts.`;go('table');runTurn();}
+function resumeGame(){const sv=loadSave();if(!sv)return;G={...sv,id:++gid,newIds:[]};if(G.lvl)cur=LEVELS[G.lvl-1];if(G.phase==='color'&&G.turn!==0)G.phase='play';go('table');if(G.awaitCall)G.awaitCall=false;runTurn();}
+function runTurn(){const g=G;if(g.phase!=='play')return;
+  if(g.pending>0&&!playable(g,g.turn).length){const k=g.pending;g.pending=0;drawCards(g,g.turn,k);sortHand(g);g.msg=`${NAMES[g.turn]} ${g.turn?'picks':'pick'} up ${k}.`;sfx.draw();render();later(()=>{advance(1);},700);return;}
+  if(g.turn===0){g.drewThisTurn=null;saveGame();render();return;}
+  render();later(botTurn,g.diff===1?900:750);}
+function botTurn(){const g=G,p=g.turn;let c=botChoose(g,p);
+  if(!c){g.catchable=-1;const got=drawCards(g,p,1);sfx.draw();let drawn=got[0];
+    if(g.drawUntil)while(drawn&&!canPlay(drawn,g)){drawn=drawCards(g,p,1)[0];}
+    g.msg=`${NAMES[p]} draws${g.drawUntil&&g.hands[p].length>1?'':' a card'}.`;
+    if(drawn&&canPlay(drawn,g)){render();later(()=>playCard(p,drawn,isWild(drawn)?botColor(g,p):null),650);return;}
+    render();later(()=>advance(1),600);return;}
+  playCard(p,c,isWild(c)?botColor(g,p):null);}
+function playCard(p,card,color){const g=G,h=g.hands[p],i=h.findIndex(c=>c.id===card.id);if(i<0)return;h.splice(i,1);g.discard.push(card);
+  g.color=isWild(card)?color:card.c;g.catchable=-1;g.say={};let steps=1,txt=`${NAMES[p]} ${p?'plays':'play'} ${cardName(card)}${isWild(card)?`, ${CNAME[g.color]}`:''}.`;
+  if(card.v==='S'){steps=2;txt+=` ${NAMES[nextP(g,p)]} ${nextP(g,p)?'is':'are'} skipped.`;}
+  if(card.v==='Rv'){if(g.n===2)steps=2;else{g.dir*=-1;}txt+=g.n===2?' Go again.':' Direction flips.';}
+  if(card.v==='D2'||card.v==='W4'){const k=card.v==='D2'?2:4;
+    if(g.stack){g.pending+=k;}else{const v=nextP(g,p);drawCards(g,v,k);if(v===0)sortHand(g);steps=2;txt+=` ${NAMES[v]} ${v?'picks':'pick'} up ${k}.`;}}
+  /\d/.test(card.v)?sfx.play():sfx.action();g.msg=txt;g.lastPlayer=p;
+  if(!h.length)return endRound(p);
+  if(h.length===1){if(p===0){g.awaitCall=true;g.callSteps=steps;render();later(()=>{if(G.awaitCall){G.awaitCall=false;drawCards(G,0,2);sortHand(G);G.msg='You forgot to say Last card! Pick up 2.';sfx.bad();render();later(()=>advance(G.callSteps),900);}},3200);return;}
+    if(Math.random()<sayChance(g)){g.saidLast[p]=true;g.say[p]='Last card!';sfx.last();}else{g.catchable=p;}}
+  render();later(()=>advance(steps),p===0?500:650);}
+function advance(steps){const g=G;g.turn=nextP(g,g.turn,steps);g.drewThisTurn=null;
+  if(g.catchable>=0&&g.catchable!==g.lastPlayer)g.catchable=-1;
+  runTurn();}
+function humanPlay(id){const g=G;if(g.turn!==0||g.phase!=='play'||g.awaitCall)return;const c=g.hands[0].find(x=>x.id===id);if(!c||!canPlay(c,g))return sfx.bad();
+  if(isWild(c)){g.phase='color';modalData={done:col=>{G.phase='play';playCard(0,c,col);}};modal='color';render();return;}
+  playCard(0,c,null);}
+function humanDraw(){const g=G;if(g.turn!==0||g.phase!=='play'||g.drewThisTurn||g.awaitCall)return;g.catchable=-1;
+  if(g.pending>0){const k=g.pending;g.pending=0;drawCards(g,0,k);sortHand(g);sfx.draw();g.msg=`You pick up ${k}.`;render();later(()=>advance(1),800);return;}
+  let got=drawCards(g,0,1);if(g.drawUntil)while(got[0]&&!canPlay(got[got.length-1],g)){got=got.concat(drawCards(g,0,1));}
+  sortHand(g);sfx.draw();g.newIds=got.map(c=>c.id);const last=got[got.length-1];
+  if(last&&canPlay(last,g)){g.drewThisTurn=last.id;g.msg=got.length>1?`You drew ${got.length} cards. Play the last one, or keep it.`:'You drew a playable card. Play it, or keep it.';render();}
+  else{g.msg=`You drew ${got.length>1?got.length+' cards':'a card'}. Your turn passes.`;render();later(()=>advance(1),800);}}
+function humanPass(){if(G.turn!==0||!G.drewThisTurn)return;G.msg='You keep it.';advance(1);}
+function callLast(){if(!G.awaitCall)return;G.awaitCall=false;G.saidLast[0]=true;G.say={0:'Last card!'};sfx.last();G.msg='Last card!';render();later(()=>advance(G.callSteps),600);}
+function catchBot(p){const g=G;if(g.catchable!==p)return;g.catchable=-1;drawCards(g,p,2);g.say[p]='Caught! +2';g.msg=`You caught ${NAMES[p]}! They pick up 2.`;sfx.good();render();}
+function endRound(w){const g=G;const pts_=g.hands.reduce((a,h,i)=>i===w?a:a+h.reduce((s,c)=>s+pts(c),0),0);g.scores[w]+=pts_;g.phase='summary';clearSave();
+  const matchOver=!g.target||g.scores.some(s=>s>=g.target);if(matchOver)g.phase='over';
+  recordResult(w===0);
+  let stars=0;if(g.lvl){stars=w===0?3:g.hands[0].length<=3?2:1;complete(g.lvl,stars);}
+  w===0?sfx.win():sfx.lose();
+  const rows=g.hands.map((h,i)=>`<tr><td>${NAMES[i]}${i===w?' 🏆︎':''}</td><td>${h.length} card${h.length===1?'':'s'}</td>${g.target?`<td>${g.scores[i]}</td>`:''}</tr>`).join('');
+  const head=w===0?(matchOver&&g.target?'You win the match!':'You win!'):`${NAMES[w]} wins${matchOver&&g.target?' the match':''}`;
+  modalData={html:`<h2 class="center">${head}</h2>${stars?`<div class="bigstars">${'★'.repeat(stars)}${'☆'.repeat(3-stars)}</div>`:''}<div class="score"><p class="center">${NAMES[w]} ${w?'scores':'score'} ${pts_} points from the cards left.</p><table><tr><th>Player</th><th>Left</th>${g.target?`<th>Total / ${g.target}</th>`:''}</tr>${rows}</table></div>
+    <div class="row" style="justify-content:center">${!matchOver?'<button class="primary" id="nr">Next round</button>':`${g.lvl&&g.lvl<LEVELS.length?'<button class="primary" id="nl">Next lesson</button>':''}<button class="${g.lvl&&g.lvl<LEVELS.length?'btn':'primary'}" id="pa">Play again</button>`}<button class="btn" id="tm">Menu</button></div>`,
+    bind:ov=>{const on=(id,f)=>{const e=ov.querySelector('#'+id);if(e)e.onclick=f;};
+      on('nr',()=>{modal=null;G.dealer=(G.dealer+1)%G.n;newRoundState(G);G.phase='play';G.msg=G.turn===0?'Your turn.':`${NAMES[G.turn]} starts.`;render();runTurn();});
+      on('pa',()=>startGame({n:G.n,diff:G.diff,target:G.target,lvl:G.lvl}));on('nl',()=>openLevel(G.lvl+1));on('tm',()=>{G=null;go('home');});}};
+  render();setTimeout(()=>{if(G===g){modal='result';renderModal();}},900);}
+const DIR_SVG='<svg viewBox="0 0 100 100" fill="none" stroke="#fff" stroke-width="3"><path d="M50 6a44 44 0 0 1 44 44"/><path d="M90 40l4 10 6-9"/><path d="M50 94A44 44 0 0 1 6 50"/><path d="M10 60 6 50 0 59"/></svg>';
+function renderTable(){const g=G;if(!g)return;const top=g.discard[g.discard.length-1],myTurn=g.turn===0&&g.phase==='play'&&!g.awaitCall;
+  document.documentElement.style.setProperty('--cur',`var(--${g.color})`);
+  const oppOrder=g.n===2?[1]:g.n===3?[1,2]:[1,2,3];
+  const opp=p=>{const k=g.hands[p].length;return `<div class="opp ${g.turn===p&&g.phase==='play'?'turn':''}"><div class="nm">${NAMES[p]} <span class="cnt">${k}</span></div>
+    <div class="backs">${Array.from({length:Math.min(k,8)},()=>cardHTML(null,{back:true})).join('')}</div>
+    ${g.say[p]?`<div class="say">${g.say[p]}</div>`:''}${g.catchable===p?`<button class="btn" data-catch="${p}" style="background:var(--Y);color:#1b1b1b;border-color:#1b1b1b;min-height:36px">Catch!</button>`:''}${g.target?`<div style="font-size:13px;font-weight:800">${g.scores[p]} pts</div>`:''}</div>`;};
+  const hand=g.hands[0].map(c=>cardHTML(c,{button:true,attr:`data-id="${c.id}"`,cls:(myTurn?(canPlay(c,g)?'ok':'no'):'')+(g.newIds.includes(c.id)?' new':'')})).join('');
+  const canDraw=myTurn&&!g.drewThisTurn;
+  let acts='';if(g.awaitCall)acts=`<button class="lastbtn" id="last">Last card!</button>`;else if(myTurn&&g.drewThisTurn)acts=`<button class="btn" id="pass">Keep it and pass</button>`;
+  const sub=g.target?` · ${g.scores[0]} / ${g.target} pts`:'';
+  app.innerHTML=`<div class="tbl">${topbar(g.lvl?esc(LEVELS[g.lvl-1].title):`Round ${g.round}`,`<button class="btn icon" id="rules" aria-label="Rules">?</button>`,g.lvl?'levels':'menu')}
+    <div class="opps">${oppOrder.map(opp).join('')}</div>
+    <div class="mid"><div class="piles">
+      <button class="pile draw ${canDraw&&!playable(g,0).length?'can':''}" id="draw" ${canDraw?'':'disabled'} aria-label="Draw a card">${cardHTML(null,{back:true})}${cardHTML(null,{back:true})}${cardHTML(null,{back:true})}<span class="lbl">Draw</span></button>
+      <div class="disc-pile"><div class="dir ${g.dir<0?'ccw':''}">${DIR_SVG}</div><div class="ring"></div>${g.discard.slice(-3,-1).map((c,i)=>cardHTML(c,{style:`transform:rotate(${(c.id*37%30)-15}deg)`})).join('')}${cardHTML(top,{cls:'top',style:`transform:rotate(${(top.id*37%20)-10}deg)`})}</div>
+    </div><div class="curcol">Colour: ${CNAME[g.color]}${g.pending?` · +${g.pending} waiting`:''}</div></div>
+    <div class="status" aria-live="polite">${esc(g.msg)}</div>
+    <div class="actions">${acts}</div>
+    <div class="me ${myTurn?'turn':''}"><div class="meinfo"><span class="nm">You</span><span style="font:800 14px var(--body)">${g.hands[0].length} cards${sub}</span>${g.say[0]?`<span class="say" style="font:400 15px var(--disp);background:var(--Y);color:#1b1b1b;border-radius:999px;padding:0 10px">${g.say[0]}</span>`:''}</div>
+      <div class="hand" style="--n:${g.hands[0].length}">${hand}</div></div></div>`;
+  g.newIds=[];bindCommon();
+  const on=(id,f)=>{const e=document.getElementById(id);if(e)e.onclick=f;};
+  on('draw',humanDraw);on('pass',humanPass);on('last',callLast);on('rules',()=>{modalData={html:`<h2>How to play</h2><p>Match the top card by colour or number, or play a Wild. Can't play? Draw. Skip, Reverse and Draw Two match by colour or symbol.</p><p>When you're down to one card, tap <b>Last card!</b> or pick up 2. Empty your hand to win.</p><div class="row"><button class="primary" id="ok">Got it</button></div>`,bind:ov=>{ov.querySelector('#ok').onclick=()=>{modal=null;render();};}};modal='result';renderModal();});
+  app.querySelectorAll('.hand .card').forEach(b=>b.onclick=()=>humanPlay(+b.dataset.id));
+  app.querySelectorAll('[data-catch]').forEach(b=>b.onclick=()=>catchBot(+b.dataset.catch));}
+
+addEventListener('resize',()=>{sizeCards();});
+addEventListener('orientationchange',()=>setTimeout(()=>{sizeCards();render();},250));
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&(modal==='settings'||modal==='newgame')){modal=null;render();}});
+sizeCards();render();
+}
+</script>
+</body>
+</html>

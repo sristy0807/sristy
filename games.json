@@ -2,11 +2,49 @@
   "_howto": "Add one object per game. 'play' is a folder inside games/ (e.g. games/my-game/) or a full URL. Leave 'play' empty for projects without a web build; they show in the archive with a source link.",
   "featured": [
     {
+      "title": "Chess School",
+      "year": 2026,
+      "engine": "JavaScript",
+      "description": "Learn chess from the board up: a lesson for every piece, check and checkmate puzzles, castling and en passant, then games against a computer opponent on three levels.",
+      "tags": [
+        "Strategy",
+        "Lessons",
+        "vs computer",
+        "Two players"
+      ],
+      "controls": "Tap a piece, then a square. Or drag.",
+      "play": "games/chess-school/",
+      "source": "https://github.com/sristy0807/chess",
+      "thumbnail": "games/chess-school/cover.jpg"
+    },
+    {
+      "title": "Last Card",
+      "year": 2026,
+      "engine": "JavaScript",
+      "description": "The four-colour shedding card game: match colours and numbers, play Skips, Reverses and Wilds, and shout Last card! before the bots catch you.",
+      "tags": [
+        "Card game",
+        "Lessons",
+        "1–3 bots",
+        "House rules"
+      ],
+      "controls": "Tap a glowing card to play it. Tap the pile to draw.",
+      "play": "games/last-card/",
+      "source": "https://github.com/sristy0807/uno",
+      "thumbnail": "games/last-card/cover.jpg"
+    },
+    {
       "title": "Card School",
       "year": 2026,
       "engine": "HTML5 / JavaScript",
       "description": "Learn to play cards from zero. Ten short levels go from suits and card order to tricks and trump, then full games of Call Bridge and 29 against computer players. Each trick explains who won and why, with animations, music and sound effects.",
-      "tags": ["Card game", "Learning", "Call Bridge", "29", "Mobile + desktop"],
+      "tags": [
+        "Card game",
+        "Learning",
+        "Call Bridge",
+        "29",
+        "Mobile + desktop"
+      ],
       "controls": "Tap or click a card to play it. Cards you're allowed to play lift up and glow.",
       "play": "games/card-school/",
       "source": "https://github.com/sristy0807/cardSchool",
@@ -17,7 +55,12 @@
       "year": 2026,
       "engine": "Three.js",
       "description": "A 3D driving game on the real road network of central Dhaka. Five modes (ride share, delivery rush, checkpoint sprint, free drive, circuit race against rival cars with different power), traffic that gives way when you honk, crash effects, and music from your own songs, internet radio or YouTube.",
-      "tags": ["Driving", "Open world", "Three.js", "Mobile + desktop"],
+      "tags": [
+        "Driving",
+        "Open world",
+        "Three.js",
+        "Mobile + desktop"
+      ],
       "controls": "W/S drive, A/D steer, Shift nitro, H horn, T back on the road. Touch controls on phones.",
       "play": "games/dhaka-metaverse/",
       "source": "https://github.com/sristy0807/dhakametaverse",
@@ -25,15 +68,75 @@
     }
   ],
   "archive": [
-    { "title": "Penalty Shoot", "year": 2022, "engine": "Unity", "source": "https://github.com/sristy0807/PenaltyShoot", "play": "" },
-    { "title": "Cut Grass", "year": 2022, "engine": "Unity", "source": "https://github.com/sristy0807/CutGrass", "play": "" },
-    { "title": "Crossout Grid", "year": 2022, "engine": "Unity", "source": "https://github.com/sristy0807/CroussoutGrid", "play": "" },
-    { "title": "Food Puzzle", "year": 2022, "engine": "Unity", "source": "https://github.com/sristy0807/foodpuzzle", "play": "" },
-    { "title": "Missile Command", "year": 2021, "engine": "Unity", "source": "https://github.com/sristy0807/missilecommand", "play": "" },
-    { "title": "Rubik's Cube", "year": 2020, "engine": "Unity", "source": "https://github.com/sristy0807/rubikscube", "play": "" },
-    { "title": "Infinite Runner", "year": 2019, "engine": "Unity", "source": "https://github.com/sristy0807/InfiniteRunner", "play": "" },
-    { "title": "Ghost Run", "year": 2018, "engine": "Unity", "source": "https://github.com/sristy0807/GhostRun", "play": "" },
-    { "title": "Blindfold Cricket", "year": 2018, "engine": "Unity", "source": "https://github.com/sristy0807/BlindFoldCricket", "play": "" },
-    { "title": "AR Brochure", "year": 2019, "engine": "Unity AR", "source": "https://github.com/sristy0807/ARBrochure", "play": "" }
+    {
+      "title": "Penalty Shoot",
+      "year": 2022,
+      "engine": "Unity",
+      "source": "https://github.com/sristy0807/PenaltyShoot",
+      "play": ""
+    },
+    {
+      "title": "Cut Grass",
+      "year": 2022,
+      "engine": "Unity",
+      "source": "https://github.com/sristy0807/CutGrass",
+      "play": ""
+    },
+    {
+      "title": "Crossout Grid",
+      "year": 2022,
+      "engine": "Unity",
+      "source": "https://github.com/sristy0807/CroussoutGrid",
+      "play": ""
+    },
+    {
+      "title": "Food Puzzle",
+      "year": 2022,
+      "engine": "Unity",
+      "source": "https://github.com/sristy0807/foodpuzzle",
+      "play": ""
+    },
+    {
+      "title": "Missile Command",
+      "year": 2021,
+      "engine": "Unity",
+      "source": "https://github.com/sristy0807/missilecommand",
+      "play": ""
+    },
+    {
+      "title": "Rubik's Cube",
+      "year": 2020,
+      "engine": "Unity",
+      "source": "https://github.com/sristy0807/rubikscube",
+      "play": ""
+    },
+    {
+      "title": "Infinite Runner",
+      "year": 2019,
+      "engine": "Unity",
+      "source": "https://github.com/sristy0807/InfiniteRunner",
+      "play": ""
+    },
+    {
+      "title": "Ghost Run",
+      "year": 2018,
+      "engine": "Unity",
+      "source": "https://github.com/sristy0807/GhostRun",
+      "play": ""
+    },
+    {
+      "title": "Blindfold Cricket",
+      "year": 2018,
+      "engine": "Unity",
+      "source": "https://github.com/sristy0807/BlindFoldCricket",
+      "play": ""
+    },
+    {
+      "title": "AR Brochure",
+      "year": 2019,
+      "engine": "Unity AR",
+      "source": "https://github.com/sristy0807/ARBrochure",
+      "play": ""
+    }
   ]
 }
