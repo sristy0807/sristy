@@ -42,7 +42,10 @@ h2{font-size:clamp(26px,4vw,34px);font-weight:700}
 .card.red{color:var(--red)}
 .card .tl,.card .br{position:absolute;font-size:calc(var(--cw)*.25);line-height:.95;text-align:center}
 .card .tl{top:6%;left:9%}.card .br{bottom:6%;right:9%;transform:rotate(180deg)}
-.card .mid{position:absolute;inset:0;display:grid;place-items:center;font-size:calc(var(--cw)*.5)}
+.card .mid{position:absolute;inset:0;display:grid;place-items:center}
+.card .sv{display:block;fill:currentColor}
+.card .tl .sv,.card .br .sv{width:calc(var(--cw)*.19);height:calc(var(--cw)*.19);margin:2px auto 0}
+.card .mid .sv{width:calc(var(--cw)*.46);height:calc(var(--cw)*.46)}
 .card.sm{--cw:40px}
 .card.back{background:linear-gradient(135deg,var(--accent),var(--accent2));border:3px solid #fff}
 .crow{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;align-items:flex-end}
@@ -162,6 +165,128 @@ table.suits td{padding:4px 12px 4px 0}
 .flyer{position:fixed;z-index:15;pointer-events:none;margin:0!important}
 .stackbadge{position:fixed;z-index:16;pointer-events:none;font:700 13px "Outfit",sans-serif;color:var(--good)}
 @media(max-width:600px){.hero{grid-template-columns:1fr}.fan{height:calc(var(--cw)*1.9)}.board{grid-template-columns:minmax(0,1fr) minmax(0,2fr) minmax(0,1fr)}.seat{font-size:12px;padding:4px}.sname{font-size:14px}.s2{min-width:0}}
+/* ===== game menu ===== */
+body.scr-home #app,body.scr-levels #app{max-width:1000px}
+.menu{min-height:calc(100dvh - 32px);display:flex;flex-direction:column}
+.menubar{display:flex;align-items:center;gap:8px}
+.menubar .grow,.grow{flex:1}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 14px;font:700 15px "Outfit",sans-serif;min-height:40px}
+.chip .st{color:var(--accent2)}
+.menumain{flex:1;display:grid;grid-template-columns:1fr;align-content:center;justify-items:center;gap:clamp(16px,4vh,36px);padding:12px 0}
+.brand{text-align:center;display:grid;justify-items:center}
+.brand .fan{--cw:clamp(52px,15vw,88px);width:calc(var(--cw)*4);margin-bottom:clamp(10px,3vh,24px)}
+.logo{font:800 clamp(52px,14vw,96px)/.9 "Outfit",sans-serif;letter-spacing:-.04em;margin:.1em 0 .15em}
+.logo span{background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.tag{margin:0;color:var(--muted);font-size:15px}
+.tag .bn{display:block;font-size:20px;color:var(--ink);margin-bottom:2px}
+.menubtns{display:grid;gap:12px;width:min(100%,380px)}
+.mbtn{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:14px 20px;min-height:58px;font:700 19px "Outfit",sans-serif;text-align:left;box-shadow:0 6px 18px rgba(2,6,23,.12);transition:transform .12s,border-color .15s}
+.mbtn small{font:600 13px "Plus Jakarta Sans",sans-serif;color:var(--muted)}
+.mbtn:hover:not(:disabled){border-color:var(--accent)}
+.mbtn:active:not(:disabled){transform:scale(.97)}
+.mbtn:disabled{opacity:.5;cursor:not-allowed}
+.mbtn.play{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:0;min-height:76px;font-size:28px;box-shadow:0 12px 30px color-mix(in srgb,var(--accent) 45%,transparent);animation:glow 2.4s ease-in-out infinite}
+.mbtn.play small{color:rgba(255,255,255,.85);font-size:14px;text-align:right}
+@keyframes glow{50%{box-shadow:0 12px 40px color-mix(in srgb,var(--accent2) 60%,transparent)}}
+.quick{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.quick .mbtn{flex-direction:column;align-items:flex-start;justify-content:center;gap:0;font-size:18px}
+.suitic{font-size:22px;line-height:1}
+/* settings */
+.setrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.toggle{width:56px;height:32px;border-radius:999px;border:0;background:var(--line);position:relative;transition:background .2s;flex:none}
+.toggle::after{content:"";position:absolute;top:4px;left:4px;width:24px;height:24px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.toggle[aria-pressed=true]{background:var(--accent)}
+.toggle[aria-pressed=true]::after{transform:translateX(24px)}
+.seg{display:flex;background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:3px}
+.seg button{border:0;background:none;border-radius:9px;padding:6px 12px;font-weight:600;min-height:36px}
+.seg button[aria-pressed=true]{background:var(--surface);box-shadow:0 1px 4px rgba(2,6,23,.15);color:var(--accent)}
+.danger{color:var(--bad)!important}
+/* level map */
+.chapter{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:16px clamp(12px,3vw,24px) 18px;margin-bottom:14px;box-shadow:0 8px 24px rgba(2,6,23,.08)}
+.chap{display:flex;align-items:center;gap:10px;font:700 20px "Outfit",sans-serif;margin:0 0 14px}
+.chap .suitic{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:var(--card);color:#0f172a;border:1px solid var(--line)}
+.chap .suitic.red{color:var(--red)}
+.chap small{margin-left:auto;font:600 14px "Plus Jakarta Sans",sans-serif;color:var(--muted)}
+.track{display:grid;grid-template-columns:repeat(var(--k),minmax(0,1fr));position:relative;gap:6px}
+.track::before{content:"";position:absolute;left:calc(50%/var(--k));right:calc(50%/var(--k));top:32px;height:4px;border-radius:2px;background:var(--line)}
+.node{background:none;border:0;padding:0;display:grid;justify-items:center;gap:6px;position:relative;text-align:center}
+.disc{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;font:800 24px "Outfit",sans-serif;background:var(--surface2);border:3px solid var(--line);position:relative;z-index:1;transition:transform .15s}
+.node.done .disc{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-color:transparent}
+.node.now .disc{background:var(--surface);border-color:var(--accent);color:var(--accent);animation:breathe 1.6s ease-in-out infinite;box-shadow:0 0 0 6px color-mix(in srgb,var(--accent) 20%,transparent)}
+.node.locked{cursor:not-allowed}.node.locked .disc{opacity:.55;font-size:20px}
+.node:hover:not(:disabled) .disc{transform:scale(1.08)}
+.node .nt{font-weight:700;font-size:13px;line-height:1.2;max-width:12ch}
+.node .stars{font-size:13px;letter-spacing:1px}
+.node.locked .nt{color:var(--muted)}
+@media(min-width:760px),(orientation:landscape) and (max-height:560px){
+  .menumain{grid-template-columns:1.1fr 1fr;align-items:center;justify-items:stretch}
+  .brand{justify-items:center}
+  .menubtns{justify-self:center}
+}
+@media(orientation:landscape) and (max-height:560px){
+  .menu{min-height:calc(100dvh - 20px)}
+  .brand .fan{--cw:clamp(40px,11vh,64px)}
+  .logo{font-size:clamp(40px,12vh,72px)}
+  .mbtn{min-height:46px;padding:8px 16px;font-size:17px}
+  .mbtn.play{min-height:58px;font-size:24px}
+  .menubtns{gap:8px}.quick{gap:8px}
+  .tag .bn{font-size:17px}
+}
+/* ===== responsive table (portrait + landscape) ===== */
+body.scr-table{overflow:hidden}
+body.scr-table #app{max-width:1200px;height:100dvh;padding:8px max(env(safe-area-inset-right),10px) max(env(safe-area-inset-bottom),6px) max(env(safe-area-inset-left),10px)}
+.tbl{height:100%;display:flex;flex-direction:column;gap:4px}
+.tbl .topbar{margin:0;flex-wrap:nowrap}
+.tbl .topbar .grow{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:15px}
+.tbl .info{flex-wrap:nowrap;overflow-x:auto;white-space:nowrap;scrollbar-width:none;font-size:13px}
+.tbl .info::-webkit-scrollbar{display:none}
+.tbl .info>span{flex:none}
+.tbl{position:relative}
+.tbl .board{flex:1;min-height:0;margin:0;grid-template-rows:auto minmax(0,1fr)}
+.tbl .center{height:auto;align-self:stretch;min-height:calc(var(--cw)*3);max-height:calc(var(--cw)*4.4);margin:auto 0;width:100%;border-radius:40%}
+.tbl .seat{font-size:12px;padding:4px 6px;line-height:1.3}
+.tbl .sname{font-size:14px}
+.status{min-height:42px;display:grid;align-content:center}
+.tbl .msg{min-height:0;font-size:15px;line-height:1.3}
+.tbl .explainbar{min-height:0;font-size:13px;line-height:1.3}
+.tbl .actions{margin:0}
+.tbl .actions:empty{display:none}
+.mine{display:flex;flex-direction:column;align-items:stretch}
+.mine .youbar{margin:0;justify-content:center}
+.tbl .hand{container-type:inline-size;padding:16px 0 2px;overflow:visible;justify-content:center}
+.tbl .hand .card,.tbl .hand .card:first-child{margin-left:0}
+.tbl .hand .card+.card{margin-left:min(4px,calc((100cqw - 4px - var(--n)*var(--cw))/max(var(--n) - 1,1)))}
+.tbl .hand .card.ok:hover{transform:translateY(-14px)}
+@media(hover:hover){.tbl .hand .card.ok:hover{transform:translateY(-22px)}}
+.backlbl{display:inline}
+@media(max-width:600px){
+  .backlbl{display:none}
+  .topbar .grow{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .topbar .dots{order:9;width:100%;justify-content:center}
+  .tbl .seat .sub2{display:none}
+  .tbl .actions{gap:6px}
+  .tbl .actions [data-bid]{flex:1 0 34px;max-width:44px;padding:6px 0;min-height:42px}
+}
+/* phone landscape: short screens */
+@media(orientation:landscape) and (max-height:560px){
+  body.scr-table #app{padding-top:4px}
+  .tbl{gap:2px}
+  .tbl .topbar .btn{min-height:36px;padding:4px 10px}
+  .tbl .topbar .btn.icon{width:36px}
+  .tbl .board{grid-template-columns:minmax(0,1fr) minmax(0,3fr) minmax(0,1fr);grid-template-areas:"w n e" "w c e";grid-template-rows:auto minmax(0,1fr)}
+  .tbl .s2{padding:2px 10px}
+  .tbl .s2 .sub2{display:none}
+  .tbl .center{min-height:calc(var(--cw)*2.9);max-height:calc(var(--cw)*3.2)}
+  .slot0{bottom:0}.slot2{top:0}
+  .status{min-height:30px}
+  .tbl .msg{font-size:14px}.tbl .explainbar{font-size:12px}
+  .tbl .actions .btn,.tbl .actions .primary{min-height:36px;padding:4px 12px;font-size:15px}
+  .tbl .actions .hint{font-size:12px}
+  .tbl .actions{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(var(--cw)*1.4 + 24px);z-index:4;width:min(92%,640px);background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(6px);border:1px solid var(--line);border-radius:16px;padding:8px;box-shadow:0 10px 30px rgba(2,6,23,.25)}
+  .mine{flex-direction:row;align-items:flex-end;gap:8px}
+  .mine .youbar{flex:none;margin-bottom:6px}
+  .mine .hand{flex:1;min-width:0;padding-top:14px}
+}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -170,7 +295,13 @@ table.suits td{padding:4px 12px 4px 0}
 <script>
 {
 const SUITS=['S','H','D','C'];
-const SYM={S:'♠',H:'♥',D:'♦',C:'♣'};
+const SYM={S:'♠︎\uFE0E',H:'♥︎\uFE0E',D:'♦︎\uFE0E',C:'♣︎\uFE0E'};
+/* card suits are drawn as SVG so iOS/Android never swap in emoji */
+const SUITSVG={S:'<path d="M50 4C38 22 8 38 8 60c0 14 11 23 23 23 7 0 13-3 16-8-1 9-5 15-12 21h30c-7-6-11-12-12-21 3 5 9 8 16 8 12 0 23-9 23-23C92 38 62 22 50 4z"/>',
+  H:'<path d="M50 92C20 68 4 52 4 32 4 17 15 6 29 6c9 0 17 5 21 13 4-8 12-13 21-13 14 0 25 11 25 26 0 20-16 36-46 60z"/>',
+  D:'<path d="M50 2 88 50 50 98 12 50z"/>',
+  C:'<circle cx="50" cy="27" r="21"/><circle cx="26" cy="58" r="21"/><circle cx="74" cy="58" r="21"/><path d="M44 52h12c0 20 4 30 14 44H30c10-14 14-24 14-44z"/>'};
+const sv=s=>`<svg class="sv" viewBox="0 0 100 100" aria-hidden="true">${SUITSVG[s]}</svg>`;
 const SNAME={S:'Spades',H:'Hearts',D:'Diamonds',C:'Clubs'};
 const BN={S:'ইস্কাপন',H:'হরতন',D:'রুইতন',C:'চিড়িতন'};
 const rl=r=>({11:'J',12:'Q',13:'K',14:'A'}[r]||String(r));
@@ -187,7 +318,7 @@ const PTS29={11:3,9:2,14:1,10:1};
 const pts=c=>PTS29[c.r]||0;
 const power=(c,mode)=>mode==='29'?P29[c.r]:c.r;
 function sortHand(h,mode){const o={S:0,H:1,C:2,D:3};return h.sort((a,b)=>o[a.s]-o[b.s]||power(b,mode)-power(a,mode));}
-function cardHTML(c,o={}){return `<div class="card ${isRed(c.s)?'red':''} ${o.cls||''}" ${o.attr||''}><span class="tl">${rl(c.r)}<br>${SYM[c.s]}</span><span class="mid">${SYM[c.s]}</span><span class="br">${rl(c.r)}<br>${SYM[c.s]}</span></div>`;}
+function cardHTML(c,o={}){return `<div class="card ${isRed(c.s)?'red':''} ${o.cls||''}" ${o.attr||''} role="img" aria-label="${longName(c)}"><span class="tl">${rl(c.r)}${sv(c.s)}</span><span class="mid">${sv(c.s)}</span><span class="br">${rl(c.r)}${sv(c.s)}</span></div>`;}
 const C=(r,s)=>cardHTML({r,s},{cls:'sm'});
 const row=(...cs)=>`<div class="crow">${cs.join('')}</div>`;
 function beats(b,a,trump,mode){if(trump&&b.s===trump&&a.s!==trump)return true;if(trump&&a.s===trump&&b.s!==trump)return false;if(b.s===a.s)return power(b,mode)>power(a,mode);return false;}
@@ -334,7 +465,7 @@ function genTrickQ(trump){
   let ex;
   if(tr&&wc.s==='S'&&lead!=='S')ex=`${cname(wc)} wins: ${cards.filter(c=>c.s==='S').length>1?'it is the highest trump.':'a trump beats every other suit.'}`;
   else ex=`${cname(wc)} wins: highest ${SNAME[lead]}, the suit that was led.${offHigh?' Other suits cannot win — even a King or Ace.':''}`;
-  return {prompt:trump?'Spades ♠ are trump. Which card wins this trick?':'No trump. Which card wins this trick?',
+  return {prompt:trump?'Spades ♠︎ are trump. Which card wins this trick?':'No trump. Which card wins this trick?',
     choices:cards.map((c,i)=>({html:`${cardHTML(c)}<div class="clabel">${labels[i]}</div>`,ok:i===w})),cards:true,explain:ex};
 }
 function numOpts(correct,cands){const set=[correct];const has=v=>set.some(x=>Math.abs(x-v)<1e-9);
@@ -343,7 +474,7 @@ function numOpts(correct,cands){const set=[correct];const has=v=>set.some(x=>Mat
   return shuffle(set);}
 function genCBQ(){
   const t=rnd(5);
-  if(t===0)return {prompt:'In Call Bridge, which suit is <b>always trump</b>?',choices:SUITS.map(s=>({html:`${SYM[s]} ${SNAME[s]}`,ok:s==='S'})),explain:'Spades ♠ are always trump in Call Bridge.'};
+  if(t===0)return {prompt:'In Call Bridge, which suit is <b>always trump</b>?',choices:SUITS.map(s=>({html:`${SYM[s]} ${SNAME[s]}`,ok:s==='S'})),explain:'Spades ♠︎ are always trump in Call Bridge.'};
   const bid=2+rnd(5);
   const won=t<=2?(t===1?bid:bid+1+rnd(3)):Math.max(0,bid-1-rnd(2));
   const correct=won>=bid?Math.round((bid+.1*(won-bid))*10)/10:-bid;
@@ -370,10 +501,10 @@ function gen29Q(){
 const LEVELS=[
  {id:1,group:'Basics',title:'Meet the deck',type:'quiz',gen:genSuitQ,n:8,pass:6,lesson:()=>`
   <p>A deck has <b>52 cards</b> in <b>4 suits</b>. Each suit has a symbol and a colour:</p>
-  <table class="suits"><tr><td class="big">♠</td><td>Spades</td><td class="bn">ইস্কাপন</td><td>black</td></tr>
-  <tr><td class="big redt">♥</td><td>Hearts</td><td class="bn">হরতন</td><td>red</td></tr>
-  <tr><td class="big redt">♦</td><td>Diamonds</td><td class="bn">রুইতন</td><td>red</td></tr>
-  <tr><td class="big">♣</td><td>Clubs</td><td class="bn">চিড়িতন</td><td>black</td></tr></table>
+  <table class="suits"><tr><td class="big">♠︎</td><td>Spades</td><td class="bn">ইস্কাপন</td><td>black</td></tr>
+  <tr><td class="big redt">♥︎</td><td>Hearts</td><td class="bn">হরতন</td><td>red</td></tr>
+  <tr><td class="big redt">♦︎</td><td>Diamonds</td><td class="bn">রুইতন</td><td>red</td></tr>
+  <tr><td class="big">♣︎</td><td>Clubs</td><td class="bn">চিড়িতন</td><td>black</td></tr></table>
   <p>Every suit has 13 cards: <b>2 to 10</b>, plus four letter cards:</p>
   ${row(C(11,'C'),C(12,'D'),C(13,'H'),C(14,'S'))}
   <p><b>J</b> Jack <span class="bn">(গোলাম)</span> · <b>Q</b> Queen <span class="bn">(বিবি)</span> · <b>K</b> King <span class="bn">(সাহেব)</span> · <b>A</b> Ace <span class="bn">(টেক্কা)</span></p>
@@ -387,17 +518,17 @@ const LEVELS=[
   <p>Call Bridge and 29 are <b>trick-taking</b> games. In a <b>trick</b>, each of the 4 players plays one card, going round the table. The first card is the <b>lead</b>.</p>
   <p><b>Rule 1 — follow suit.</b> If you have a card of the led suit, you <i>must</i> play one. If you don't, you may play any card.</p>
   <p>West leads ${C(7,'H')} and you hold:</p>${row(C(13,'H'),C(3,'H'),C(14,'S'),C(9,'C'))}
-  <p>You must play K♥ or 3♥ — not the A♠, even though it's your best card.</p>`},
+  <p>You must play K♥︎ or 3♥︎ — not the A♠︎, even though it's your best card.</p>`},
  {id:4,group:'Tricks',title:'Win the trick',type:'quiz',gen:()=>genTrickQ(false),n:8,pass:6,lesson:()=>`
   <p><b>Rule 2 — the highest card of the led suit wins.</b> Cards of other suits cannot win, however big they are.</p>
   ${row(C(7,'H'),C(2,'H'),C(14,'C'),C(10,'H'))}
-  <p>Hearts were led. A♣ is a different suit, so it doesn't count. <b>10♥ wins.</b></p>
+  <p>Hearts were led. A♣︎ is a different suit, so it doesn't count. <b>10♥︎ wins.</b></p>
   <p class="tip">Whoever wins a trick leads the next one.</p>`},
  {id:5,group:'Tricks',title:'The power of trump',type:'quiz',gen:()=>genTrickQ(true),n:8,pass:6,lesson:()=>`
   <p><b>Trump</b> is one special suit that beats all the others. Any trump beats any non-trump card. If several trumps are played, the highest trump wins.</p>
-  <p>In <b>Call Bridge, Spades ♠ are always trump</b>.</p>
+  <p>In <b>Call Bridge, Spades ♠︎ are always trump</b>.</p>
   ${row(C(13,'H'),C(14,'H'),C(2,'S'),C(12,'H'))}
-  <p>Hearts led, but the tiny <b>2♠ wins</b>, because it's a trump.</p>
+  <p>Hearts led, but the tiny <b>2♠︎ wins</b>, because it's a trump.</p>
   <p class="tip">You can only play a trump on another suit when you have none of the led suit. In Call Bridge, if you're out of the led suit and hold a spade, you must play it.</p>`},
  {id:6,group:'Tricks',title:'Your first full hand',type:'practice',lesson:()=>`
   <p>Time to play a real hand against three computer players. Everyone gets <b>13 cards</b>, so there are <b>13 tricks</b>. Spades are trump.</p>
@@ -432,28 +563,79 @@ const LEVELS=[
 
 /* ---------- navigation ---------- */
 const app=document.getElementById('app');
-let screen='home',cur=null,Q=null,G=null,resetArm=false;
+let screen='home',cur=null,Q=null,G=null,resetArm=false,showSettings=false;
 function go(s){screen=s;render();window.scrollTo(0,0);}
-function render(){({home:renderHome,lesson:renderLesson,quiz:renderQuiz,table:renderTable})[screen]();}
+function applyTheme(){const t=progress.theme;if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;else delete document.documentElement.dataset.theme;}
+/* card size from the real viewport, so cards fit in portrait and landscape */
+function sizeCards(){const w=innerWidth,h=innerHeight,land=w>h;
+  const cw=land?Math.min(h/(h<560?7.6:8.6),w/12.5,88):Math.min(w/6.4,h/11.5,84);
+  document.documentElement.style.setProperty('--cw',Math.max(36,Math.round(cw))+'px');}
+addEventListener('resize',()=>{sizeCards();});
+addEventListener('orientationchange',()=>setTimeout(()=>{sizeCards();render();},250));
+function render(){document.body.className='scr-'+screen;({home:renderHome,levels:renderLevels,lesson:renderLesson,quiz:renderQuiz,table:renderTable})[screen]();}
 function openLevel(id){cur=LEVELS[id-1];G=null;go('lesson');}
 
-function renderHome(){
-  G=null;
-  const groups=[...new Set(LEVELS.map(l=>l.group))];
-  const total=Object.values(progress.stars).reduce((a,b)=>a+b,0);
-  app.innerHTML=`<div class="homebar">${audioBtns()}</div><div class="hero"><div><h1>Card <span>School</span></h1>
-    <p>Never held a deck of cards? Start at level 1. Ten short steps take you from “what is a suit?” to playing <b>Call Bridge</b> and <b>29</b> at a real table.</p>
-    <p><b>${total}</b> / ${LEVELS.length*3} ★ earned</p></div>
-    <div class="fan">${[{r:11,s:'S'},{r:9,s:'H'},{r:14,s:'D'},{r:13,s:'C'},{r:2,s:'S'}].map((c,i)=>cardHTML(c,{attr:`style="transform:rotate(${(i-2)*13}deg) translateY(${Math.abs(i-2)*6}px)"`})).join('')}</div></div>
-    ${groups.map(g=>`<div class="group">${g}</div><div class="path">${LEVELS.filter(l=>l.group===g).map(L=>{
-      const locked=L.id>progress.unlocked,st=progress.stars[L.id]||0;
-      return `<button class="tile ${locked?'locked':''}" ${locked?'disabled':''} data-lvl="${L.id}"><div class="num">${locked?'🔒':L.id}</div><div class="tt">${L.title}</div><div class="stars">${'★'.repeat(st)}${'☆'.repeat(3-st)}</div></button>`;}).join('')}</div>`).join('')}
-    <footer><span>Progress is saved in this browser.</span><button class="link" id="reset">${resetArm?'Tap again to reset all progress':'Reset progress'}</button></footer>`;
-  app.querySelectorAll('[data-lvl]').forEach(b=>b.onclick=()=>openLevel(+b.dataset.lvl));
-  document.getElementById('reset').onclick=()=>{if(resetArm){progress={unlocked:1,stars:{}};store.set(progress);resetArm=false;}else resetArm=true;render();};
+const CHAP_SUIT={'Basics':'C','Tricks':'D','Call Bridge':'S','Twenty-Nine':'H'};
+const totalStars=()=>Object.values(progress.stars).reduce((a,b)=>a+b,0);
+const starChip=()=>`<span class="chip" title="Stars earned"><span class="st">★</span>${totalStars()} / ${LEVELS.length*3}</span>`;
+const GEAR='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>';
+function nextLevel(){const open=LEVELS.filter(l=>l.id<=progress.unlocked);return open.find(l=>!progress.stars[l.id])||open[open.length-1];}
+function quickPlay(id){cur=LEVELS[id-1];startLevel();}
+
+function settingsHTML(){if(!showSettings)return '';const a=audioPrefs(),th=progress.theme||'auto';
+  const tg=(k,label)=>`<div class="setrow"><span>${label}</span><button class="toggle" data-set="${k}" aria-pressed="${a[k]}" aria-label="${label}"></button></div>`;
+  return `<div class="overlay" id="setov"><div class="modal" role="dialog" aria-label="Settings"><h2>Settings</h2>
+    ${tg('music','Music')}${tg('sfx','Sound effects')}
+    <div class="setrow"><span>Theme</span><div class="seg">${['auto','light','dark'].map(t=>`<button data-theme="${t}" aria-pressed="${th===t}">${t[0].toUpperCase()+t.slice(1)}</button>`).join('')}</div></div>
+    <div class="setrow"><span>Progress<br><small class="bn" style="font-family:inherit">Saved in this browser</small></span><button class="btn danger" id="reset">${resetArm?'Tap again to erase':'Reset progress'}</button></div>
+    <div class="actions" style="margin-top:16px"><button class="primary" id="closeset">Done</button></div></div></div>`;}
+function bindSettings(){
+  const on=(id,f)=>{const e=document.getElementById(id);if(e)e.onclick=f;};
+  on('settings',()=>{showSettings=true;render();});
+  on('closeset',()=>{showSettings=false;resetArm=false;render();});
+  const ov=document.getElementById('setov');if(ov)ov.onclick=e=>{if(e.target===ov){showSettings=false;resetArm=false;render();}};
+  app.querySelectorAll('[data-set]').forEach(b=>b.onclick=()=>setAudio(b.dataset.set));
+  app.querySelectorAll('[data-theme]').forEach(b=>b.onclick=()=>{progress.theme=b.dataset.theme;store.set(progress);applyTheme();render();});
+  on('reset',()=>{if(resetArm){const keep={audio:progress.audio,theme:progress.theme};progress={unlocked:1,stars:{},...keep};store.set(progress);resetArm=false;}else resetArm=true;render();});
 }
-function topbar(extra=''){return `<div class="topbar"><button class="btn" data-act="home">← Levels</button><span class="grow"><b>Level ${cur.id}</b> · ${cur.title}</span>${extra}${audioBtns()}</div>`;}
-function bindCommon(){app.querySelectorAll('[data-act=home]').forEach(b=>b.onclick=()=>go('home'));}
+
+function renderHome(){
+  G=null;const nx=nextLevel(),started=totalStars()>0,done=Object.keys(progress.stars).length;
+  const q=(id,name,s)=>{const L=LEVELS[id-1],locked=id>progress.unlocked;
+    return `<button class="mbtn" data-q="${id}" ${locked?'disabled':''}><span><span class="suitic ${isRed(s)?'redt':''}">${SYM[s]}</span> ${name}</span><small>${locked?`🔒 Unlocks at level ${id}`:'Quick game'}</small></button>`;};
+  app.innerHTML=`<div class="menu">
+    <div class="menubar">${starChip()}<span class="grow"></span>${audioBtns()}<button class="btn icon" id="settings" aria-label="Settings">${GEAR}</button></div>
+    <div class="menumain">
+      <div class="brand">
+        <div class="fan">${[{r:11,s:'S'},{r:9,s:'H'},{r:14,s:'D'},{r:13,s:'C'},{r:2,s:'S'}].map((c,i)=>cardHTML(c,{attr:`style="transform:rotate(${(i-2)*13}deg) translateY(${Math.abs(i-2)*6}px)"`})).join('')}</div>
+        <h1 class="logo">Card <span>School</span></h1>
+        <p class="tag"><span class="bn">তাসের পাঠশালা</span>From your first card to Call Bridge and 29</p>
+      </div>
+      <div class="menubtns">
+        <button class="mbtn play" id="play">${started?'Continue':'Play'}<small>Level ${nx.id}<br>${nx.title}</small></button>
+        <button class="mbtn" id="levels">Levels<small>${done} of ${LEVELS.length} cleared</small></button>
+        <div class="quick">${q(8,'Call Bridge','S')}${q(10,'29','H')}</div>
+      </div>
+    </div></div>${settingsHTML()}`;
+  document.getElementById('play').onclick=()=>openLevel(nx.id);
+  document.getElementById('levels').onclick=()=>go('levels');
+  app.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>quickPlay(+b.dataset.q));
+  bindSettings();
+}
+
+function renderLevels(){
+  G=null;const groups=[...new Set(LEVELS.map(l=>l.group))],nx=nextLevel();
+  app.innerHTML=`<div class="topbar"><button class="btn" data-act="menu" aria-label="Back to menu">←<span class="backlbl"> Menu</span></button><span class="grow"><b style="font:700 22px Outfit,sans-serif">Levels</b></span>${starChip()}<button class="btn icon" id="settings" aria-label="Settings">${GEAR}</button></div>
+    ${groups.map(g=>{const ls=LEVELS.filter(l=>l.group===g),s=CHAP_SUIT[g]||'S',got=ls.reduce((a,l)=>a+(progress.stars[l.id]||0),0);
+      return `<section class="chapter"><h2 class="chap"><span class="suitic ${isRed(s)?'red':''}">${SYM[s]}</span>${g}<small>★ ${got} / ${ls.length*3}</small></h2>
+      <div class="track" style="--k:${ls.length}">${ls.map(L=>{const locked=L.id>progress.unlocked,st=progress.stars[L.id]||0,state=locked?'locked':L.id===nx.id&&!st?'now':st?'done':'open';
+        return `<button class="node ${state}" ${locked?'disabled':''} data-lvl="${L.id}" aria-label="Level ${L.id}: ${L.title}${locked?', locked':''}"><span class="disc">${locked?'🔒':L.id}</span><span class="nt">${L.title}</span><span class="stars">${'★'.repeat(st)}${'☆'.repeat(3-st)}</span></button>`;}).join('')}</div></section>`;}).join('')}
+    ${settingsHTML()}`;
+  bindCommon();bindSettings();
+  app.querySelectorAll('[data-lvl]').forEach(b=>b.onclick=()=>openLevel(+b.dataset.lvl));
+}
+function topbar(extra=''){return `<div class="topbar"><button class="btn" data-act="home" aria-label="Back to levels">←<span class="backlbl"> Levels</span></button><span class="grow"><b>Level ${cur.id}</b> · ${cur.title}</span>${extra}${audioBtns()}</div>`;}
+function bindCommon(){app.querySelectorAll('[data-act=home]').forEach(b=>b.onclick=()=>go('levels'));app.querySelectorAll('[data-act=menu]').forEach(b=>b.onclick=()=>go('home'));}
 
 function renderLesson(){
   app.innerHTML=`${topbar()}<div class="panel lesson"><h2>${cur.title}</h2>${cur.lesson()}</div>
@@ -522,7 +704,7 @@ function estimateTricks(h){let t=0;const by={};for(const c of h)(by[c.s]=by[c.s]
     if(s==='S')t+=Math.max(0,n-3)*.8;else if(n<=1&&sp>=3)t+=.5;}
   return Math.max(1,Math.min(8,Math.round(t)));}
 function stepBidCB(){const g=G;
-  if(g.bidCount===4){g.phase='play';g.turn=(g.dealer+1)%4;g.msg='Calls done — Spades ♠ are trump. Play!';render();nextTurn();return;}
+  if(g.bidCount===4){g.phase='play';g.turn=(g.dealer+1)%4;g.msg='Calls done — Spades ♠︎ are trump. Play!';render();nextTurn();return;}
   const p=g.bidTurn;if(p===0){render();return;}
   later(()=>{g.bids[p]=estimateTricks(g.hands[p]);g.msg=`${SEATN[p]} calls ${g.bids[p]}.`;g.bidTurn=(p+1)%4;g.bidCount++;render();stepBidCB();},600);}
 function humanBidCB(n){const g=G;if(g.phase!=='bid'||g.bidTurn!==0)return;sfx.bid();g.bids[0]=n;g.msg=`You call ${n}.`;g.bidTurn=1;g.bidCount++;render();stepBidCB();}
@@ -625,9 +807,9 @@ function renderTable(){const g=G;if(!g)return;
   const myTurn=g.phase==='play'&&g.turn===0&&g.trick.length<4,L=myTurn?legal(0):[];
   const turnOf=p=>(g.phase==='play'&&g.turn===p&&g.trick.length<4)||(g.phase==='bid'&&(g.mode==='cb'?g.bidTurn===p:g.auction.turn===p&&!g.auction.passed[p]));
   const sub=p=>g.mode==='cb'?`Call ${g.bids[p]??'–'} · Won ${g.tricksWon[p]}`:g.mode==='29'&&g.phase==='bid'?(g.auction.passed[p]?'passed':g.auction.holder===p?`bid ${g.auction.high}`:'&nbsp;'):`Tricks ${g.tricksWon[p]}`;
-  const seat=p=>`<div class="seat s${p} ${turnOf(p)?'turn':''} ${g.gotSeat===p?'got':''}"><div class="sname">${SEATN[p]}${g.mode==='29'&&p===2?' <span class="pt">partner</span>':''}${g.mode==='29'&&g.bidder===p?` <span class="pt bidtag">bid ${g.bidValue}</span>`:''}</div>${p?`<div>🂠 ${g.hands[p].length}</div>`:''}<div>${sub(p)}</div></div>`;
+  const seat=p=>`<div class="seat s${p} ${turnOf(p)?'turn':''} ${g.gotSeat===p?'got':''}"><div class="sname">${SEATN[p]}${g.mode==='29'&&p===2?' <span class="pt">partner</span>':''}${g.mode==='29'&&g.bidder===p?` <span class="pt bidtag">bid ${g.bidValue}</span>`:''}</div>${p?`<div class="sub2">🂠 ${g.hands[p].length}</div>`:''}<div>${sub(p)}</div></div>`;
   let trumpTxt;
-  if(g.mode!=='29')trumpTxt=`<span class="trumpchip">♠</span> always`;
+  if(g.mode!=='29')trumpTxt=`<span class="trumpchip">♠︎</span> always`;
   else if(g.trumpRevealed&&g.trump)trumpTxt=`<span class="trumpchip ${isRed(g.trump)?'red':''}">${SYM[g.trump]}</span> revealed`;
   else if(g.trump&&g.bidder===0)trumpTxt=`<span class="trumpchip ${isRed(g.trump)?'red':''}">${SYM[g.trump]}</span> secret — only you know`;
   else trumpTxt=g.phase==='bid'?'not chosen yet':'hidden';
@@ -645,13 +827,13 @@ function renderTable(){const g=G;if(!g)return;
   if(canReveal())actions=`<button class="primary" id="reveal">Reveal trump</button><div class="hint">You have no ${SNAME[g.trick[0].c.s]}. Reveal trump (then you must play one if you have it), or just discard any card.</div>`;
   const trick=g.trick.map((t,i)=>`<div class="slot slot${t.p} ${g.winSlot===t.p?'win'+(t.p===0||(g.mode==='29'&&t.p===2)?' mine':''):''} ${i===0?'lead':''}">${cardHTML(t.c)}</div>`).join('');
   const hand=g.hands[0].map((c,i)=>cardHTML(c,{attr:`data-c="${i}"`,cls:(myTurn?(L.includes(c)?'ok':'no'):'')+(g.shakeIdx===i?' shake':'')})).join('');
-  app.innerHTML=`${topbar(`<button class="btn" id="rules">Rules</button>`)}<div class="info">${info}</div>
+  app.innerHTML=`<div class="tbl">${topbar(`<button class="btn" id="rules">Rules</button>`)}<div class="info">${info}</div>
     <div class="board">${seat(2)}${seat(1)}<div class="center">${trick}</div>${seat(3)}</div>
-    <div class="msg ${g.warn?'warn':''}">${g.msg||(myTurn?(g.trick.length?'Your turn — play a glowing card.':'Your lead — play any card.'):'&nbsp;')}</div>
-    <div class="explainbar">${g.explain}</div>
+    <div class="status"><div class="msg ${g.warn?'warn':''}">${g.msg||(myTurn?(g.trick.length?'Your turn — play a glowing card.':'Your lead — play any card.'):'&nbsp;')}</div>
+    <div class="explainbar">${g.explain}</div></div>
     <div class="actions">${actions}</div>
-    <div class="youbar">${seat(0)}</div>
-    <div class="hand">${hand}</div>
+    <div class="mine"><div class="youbar">${seat(0)}</div>
+    <div class="hand" style="--n:${g.hands[0].length}">${hand}</div></div></div>
     ${g.phase==='summary'?`<div class="overlay"><div class="modal">${g.summary}<div class="actions">${g.summaryDone?`${cur.id<LEVELS.length?'<button class="primary" id="nxl">Next level →</button>':''}<button class="btn" id="again">Play again</button><button class="btn" data-act="home">All levels</button>`:`<button class="primary" id="nr">Next ${g.mode==='29'?'deal':'round'} →</button>`}</div></div></div>`:''}
     ${g.showRules?`<div class="overlay"><div class="modal lesson"><h2>${cur.title}</h2>${cur.lesson()}<button class="primary" id="closer">Back to the table</button></div></div>`:''}`;
   bindCommon();
@@ -664,7 +846,7 @@ function renderTable(){const g=G;if(!g)return;
   on('rules',()=>{g.showRules=true;render();});
   if(g.phase==='summary'&&g.celebrate){g.celebrate=false;setTimeout(()=>burst(app.querySelector('.bigstars'),null,40),300);}on('closer',()=>{g.showRules=false;render();});
 }
-render();
+applyTheme();sizeCards();render();
 }
 </script>
 </body>
