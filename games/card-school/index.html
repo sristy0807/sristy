@@ -287,6 +287,12 @@ body.scr-table #app{max-width:1200px;height:100dvh;padding:8px max(env(safe-area
   .mine .youbar{flex:none;margin-bottom:6px}
   .mine .hand{flex:1;min-width:0;padding-top:14px}
 }
+.welcome{display:grid;gap:12px;max-width:440px}
+.welcome h2{margin:0;font:700 26px/1.15 "Outfit",sans-serif}
+.welcome .hint{margin:0 0 4px;color:var(--muted)}
+.welcome .mbtn{min-height:76px;font-size:18px}
+.welcome .mbtn small{display:block;font-weight:500;margin-top:2px;line-height:1.35}
+.welcome .suitic{font-size:30px}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -356,6 +362,14 @@ const fmt=v=>(v<0?'−':'')+(Number.isInteger(v)?Math.abs(v):Math.abs(v).toFixed
 const KEY='cardschool.v1';
 const store={get(d){try{const v=localStorage.getItem(KEY);return v?JSON.parse(v):d}catch(e){return d}},set(v){try{localStorage.setItem(KEY,JSON.stringify(v))}catch(e){}}};
 let progress=store.get({unlocked:1,stars:{}});
+/* saved game: written whenever the table is waiting for the player, so it can be resumed exactly there */
+const SAVE_KEY='cardschool.game.v1';
+function saveGame(){if(!G||!cur)return;try{localStorage.setItem(SAVE_KEY,JSON.stringify({lvl:cur.id,at:Date.now(),g:{...G,showRules:false,celebrate:false,shakeIdx:null,gotSeat:-1,warn:false}}));}catch(e){}}
+function loadSave(){try{const v=JSON.parse(localStorage.getItem(SAVE_KEY));return v&&v.g&&LEVELS[v.lvl-1]?v:null;}catch(e){return null;}}
+function clearSave(){try{localStorage.removeItem(SAVE_KEY);}catch(e){}}
+function resumeGame(){const sv=loadSave();if(!sv)return;cur=LEVELS[sv.lvl-1];G=sv.g;G.id=++gid;go('table');}
+function recordResult(mode,won){const st=progress.stats=progress.stats||{};const m=st[mode]=st[mode]||{played:0,won:0};m.played++;if(won)m.won++;store.set(progress);}
+function setSkill(k){progress.skill=k;if(k==='pro')progress.unlocked=LEVELS.length;store.set(progress);}
 function complete(id,stars){progress.stars[id]=Math.max(progress.stars[id]||0,stars);progress.unlocked=Math.max(progress.unlocked,Math.min(LEVELS.length,id+1));store.set(progress);}
 
 /* ---------- audio: everything synthesized with Web Audio ---------- */
@@ -587,6 +601,7 @@ function settingsHTML(){if(!showSettings)return '';const a=audioPrefs(),th=progr
   return `<div class="overlay" id="setov"><div class="modal" role="dialog" aria-label="Settings"><h2>Settings</h2>
     ${tg('music','Music')}${tg('sfx','Sound effects')}
     <div class="setrow"><span>Theme</span><div class="seg">${['auto','light','dark'].map(t=>`<button data-theme="${t}" aria-pressed="${th===t}">${t[0].toUpperCase()+t.slice(1)}</button>`).join('')}</div></div>
+    <div class="setrow"><span>Experience</span><div class="seg"><button data-skillset="new" aria-pressed="${progress.skill!=='pro'}">Learning</button><button data-skillset="pro" aria-pressed="${progress.skill==='pro'}">I already play</button></div></div>
     <div class="setrow"><span>Progress<br><small class="bn" style="font-family:inherit">Saved in this browser</small></span><button class="btn danger" id="reset">${resetArm?'Tap again to erase':'Reset progress'}</button></div>
     <div class="actions" style="margin-top:16px"><button class="primary" id="closeset">Done</button></div></div></div>`;}
 function bindSettings(){
@@ -595,14 +610,32 @@ function bindSettings(){
   on('closeset',()=>{showSettings=false;resetArm=false;render();});
   const ov=document.getElementById('setov');if(ov)ov.onclick=e=>{if(e.target===ov){showSettings=false;resetArm=false;render();}};
   app.querySelectorAll('[data-set]').forEach(b=>b.onclick=()=>setAudio(b.dataset.set));
+  app.querySelectorAll('[data-skillset]').forEach(b=>b.onclick=()=>{setSkill(b.dataset.skillset);render();});
   app.querySelectorAll('[data-theme]').forEach(b=>b.onclick=()=>{progress.theme=b.dataset.theme;store.set(progress);applyTheme();render();});
-  on('reset',()=>{if(resetArm){const keep={audio:progress.audio,theme:progress.theme};progress={unlocked:1,stars:{},...keep};store.set(progress);resetArm=false;}else resetArm=true;render();});
+  on('reset',()=>{if(resetArm){const keep={audio:progress.audio,theme:progress.theme};progress={unlocked:1,stars:{},...keep};store.set(progress);clearSave();resetArm=false;}else resetArm=true;render();});
 }
 
+const MODE_NAME={cb:'Call Bridge','29':'29',practice:'Practice hand'};
+function saveLabel(sv){const g=sv.g,nm=MODE_NAME[g.mode]||LEVELS[sv.lvl-1].title;
+  return g.mode==='practice'?nm:`${nm}<br>${g.mode==='29'?'Deal':'Round'} ${g.round} of ${g.maxRounds}`;}
+function statLine(mode,id){const m=(progress.stats||{})[mode];if(id>progress.unlocked)return `🔒 Unlocks at level ${id}`;
+  return m&&m.played?`Won ${m.won} of ${m.played}`:'Quick game';}
+function welcomeHTML(){if(progress.skill||Object.keys(progress.stars).length)return '';
+  return `<div class="overlay" id="welcome"><div class="modal welcome" role="dialog" aria-labelledby="wh">
+    <h2 id="wh">Have you played cards before?</h2>
+    <p class="hint">Your progress is saved on this device, so you can stop any time and carry on later.</p>
+    <button class="mbtn" data-skill="new"><span>I'm new to cards<br><small>Learn step by step, from the suits up</small></span><span class="suitic">♣︎</span></button>
+    <button class="mbtn" data-skill="pro"><span>I already play<br><small>Go straight to Call Bridge and 29. Every level stays open if you want a refresher.</small></span><span class="suitic redt">♥︎</span></button>
+  </div></div>`;}
+
 function renderHome(){
-  G=null;const nx=nextLevel(),started=totalStars()>0,done=Object.keys(progress.stars).length;
-  const q=(id,name,s)=>{const L=LEVELS[id-1],locked=id>progress.unlocked;
-    return `<button class="mbtn" data-q="${id}" ${locked?'disabled':''}><span><span class="suitic ${isRed(s)?'redt':''}">${SYM[s]}</span> ${name}</span><small>${locked?`🔒 Unlocks at level ${id}`:'Quick game'}</small></button>`;};
+  G=null;const sv=loadSave(),pro=progress.skill==='pro',nx=nextLevel(),started=totalStars()>0,done=Object.keys(progress.stars).length;
+  const q=(id,mode,name,s)=>{const locked=id>progress.unlocked;
+    return `<button class="mbtn" data-q="${id}" ${locked?'disabled':''}><span><span class="suitic ${isRed(s)?'redt':''}">${SYM[s]}</span> ${name}</span><small>${statLine(mode,id)}</small></button>`;};
+  let primary;
+  if(sv)primary=`<button class="mbtn play" id="resume">Resume<small>${saveLabel(sv)}</small></button>`;
+  else if(pro)primary=`<button class="mbtn play" data-q="8">Play<small>Call Bridge<br>3 rounds vs 3 bots</small></button>`;
+  else primary=`<button class="mbtn play" id="play">${started?'Continue':'Play'}<small>Level ${nx.id}<br>${nx.title}</small></button>`;
   app.innerHTML=`<div class="menu">
     <div class="menubar">${starChip()}<span class="grow"></span>${audioBtns()}<button class="btn icon" id="settings" aria-label="Settings">${GEAR}</button></div>
     <div class="menumain">
@@ -612,14 +645,15 @@ function renderHome(){
         <p class="tag"><span class="bn">তাসের পাঠশালা</span>From your first card to Call Bridge and 29</p>
       </div>
       <div class="menubtns">
-        <button class="mbtn play" id="play">${started?'Continue':'Play'}<small>Level ${nx.id}<br>${nx.title}</small></button>
-        <button class="mbtn" id="levels">Levels<small>${done} of ${LEVELS.length} cleared</small></button>
-        <div class="quick">${q(8,'Call Bridge','S')}${q(10,'29','H')}</div>
+        ${primary}
+        <div class="quick">${q(8,'cb','Call Bridge','S')}${q(10,'29','29','H')}</div>
+        <button class="mbtn" id="levels">${pro?'Lessons':'Levels'}<small>${done} of ${LEVELS.length} cleared</small></button>
       </div>
-    </div></div>${settingsHTML()}`;
-  document.getElementById('play').onclick=()=>openLevel(nx.id);
-  document.getElementById('levels').onclick=()=>go('levels');
+    </div></div>${welcomeHTML()}${settingsHTML()}`;
+  const on=(id,f)=>{const e=document.getElementById(id);if(e)e.onclick=f;};
+  on('play',()=>openLevel(nx.id));on('resume',resumeGame);on('levels',()=>go('levels'));
   app.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>quickPlay(+b.dataset.q));
+  app.querySelectorAll('[data-skill]').forEach(b=>b.onclick=()=>{setSkill(b.dataset.skill);if(b.dataset.skill==='new')openLevel(1);else render();});
   bindSettings();
 }
 
@@ -644,7 +678,7 @@ function renderLesson(){
 }
 function startLevel(){
   if(cur.type==='quiz'){Q={i:0,n:cur.n,correct:0,hist:[],q:cur.gen(),answered:false,done:false};go('quiz');}
-  else{G=cur.type==='practice'?baseG('practice'):cur.type==='callbridge'?baseG('cb'):baseG('29');screen='table';beginDeal();}
+  else{clearSave();G=cur.type==='practice'?baseG('practice'):cur.type==='callbridge'?baseG('cb'):baseG('29');screen='table';beginDeal();}
 }
 
 /* ---------- quiz ---------- */
@@ -798,6 +832,7 @@ function endDeal(){const g=G;g.phase='summary';let html='',final=g.round>=g.maxR
       <p>${team(bt)} ${made?`collected ${g.teamPts[bt]} ≥ ${g.bidValue}: <b>+1</b> game point.`:`needed ${g.bidValue} but got ${g.teamPts[bt]}: <b>−1</b> game point.`}</p>`;
     if(final){const d=g.game[0]-g.game[1];stars=d>0?3:d===0?2:1;complete(cur.id,stars);html+=`<p><b>${d>0?'Your team wins!':d===0?'It’s a draw.':'West + East win this time.'}</b></p>`;}}
   const done=g.mode==='practice'||final;
+  if(done&&g.mode!=='practice')recordResult(g.mode,stars===3);
   g.summary=html+(done?starsHTML(stars):'');g.celebrate=done&&stars>=2;
   g.summaryDone=done;render();done?(stars>=2?sfx.win():sfx.lose()):sfx.round();}
 function nextRound(){const g=G;g.round++;g.dealer=(g.dealer+1)%4;beginDeal();}
@@ -836,6 +871,7 @@ function renderTable(){const g=G;if(!g)return;
     <div class="hand" style="--n:${g.hands[0].length}">${hand}</div></div></div>
     ${g.phase==='summary'?`<div class="overlay"><div class="modal">${g.summary}<div class="actions">${g.summaryDone?`${cur.id<LEVELS.length?'<button class="primary" id="nxl">Next level →</button>':''}<button class="btn" id="again">Play again</button><button class="btn" data-act="home">All levels</button>`:`<button class="primary" id="nr">Next ${g.mode==='29'?'deal':'round'} →</button>`}</div></div></div>`:''}
     ${g.showRules?`<div class="overlay"><div class="modal lesson"><h2>${cur.title}</h2>${cur.lesson()}<button class="primary" id="closer">Back to the table</button></div></div>`:''}`;
+  if(g.summaryDone)clearSave();else if(myTurn||actions||g.phase==='summary')saveGame();
   bindCommon();
   app.querySelectorAll('[data-c]').forEach(e=>e.onclick=()=>humanPlay(+e.dataset.c));
   app.querySelectorAll('[data-bid]').forEach(e=>e.onclick=()=>humanBidCB(+e.dataset.bid));
