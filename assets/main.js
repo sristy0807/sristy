@@ -83,7 +83,7 @@
   const text = (id, v) => { if ($(id) && v != null) $(id).textContent = v; };
   fetch('content.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : Promise.reject()).then(c => {
     text('c-name', c.name); text('c-footer', c.footer);
-    if (c.name) document.title = `${c.name} — games and graphics`;
+    if (c.name) document.title = c.name;
     if (Array.isArray(c.work) && $('c-work')) $('c-work').innerHTML = c.work.map(w =>
       `<li><span class="when">${esc(w.when)}</span><div><h3>${esc(w.title)}</h3><p>${esc(w.text)}</p></div></li>`).join('');
     if (Array.isArray(c.links) && $('c-links')) $('c-links').innerHTML = c.links.filter(l => l.url).map(l =>
