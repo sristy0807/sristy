@@ -1,7 +1,13 @@
 {
   "_howto": "Each entry copies files from a game's own repo (main branch) into games/<folder>/ on this site. Add a line per game.",
   "games": [
-    { "folder": "card-school", "repo": "sristy0807/cardSchool", "files": ["index.html"] },
-    { "folder": "dhaka-metaverse", "repo": "sristy0807/dhakametaverse", "files": ["index.html"] }
-  ]
+    {
+      "folder": "card-school",
+      "repo": "sristy0807/cardSchool",
+      "files": [
+        "index.html"
+      ]
+    }
+  ],
+  "_note": "dhaka-metaverse is not synced: the site copy is newer than the dhakametaverse repo. Push the latest game to that repo first, then add it back."
 }
