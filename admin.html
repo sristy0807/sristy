@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Site dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<style>
+  body { font-size: 1rem; }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 0 1.25rem 6rem; }
+  .bar { position: sticky; top: 0; z-index: 5; background: var(--paper); border-bottom: 2px solid var(--ink); }
+  .bar .in { max-width: 920px; margin: 0 auto; padding: .75rem 1.25rem; display: flex; gap: .75rem; align-items: center; flex-wrap: wrap; }
+  .bar h1 { font-size: 1.3rem; margin: 0; flex: 1; font-variation-settings: "wdth" 80; }
+  .tabs { display: flex; gap: .25rem; overflow-x: auto; padding: .75rem 0 0; }
+  .tabs button { flex: none; border: 2px solid transparent; background: none; font: inherit; font-weight: 600; padding: .5rem .9rem; border-radius: 999px; cursor: pointer; color: var(--ink); min-height: 44px; }
+  .tabs button[aria-selected=true] { border-color: var(--ink); background: var(--ink); color: var(--paper); }
+  .panel { padding-top: 1.5rem; }
+  .panel h2 { font-size: 1.8rem; margin-bottom: .25rem; }
+  .hint { color: var(--muted); margin: 0 0 1.25rem; max-width: 62ch; }
+  label { display: block; font-weight: 600; margin: 1rem 0 .3rem; }
+  input, textarea, select { width: 100%; font: inherit; font-size: 16px; padding: .65rem .75rem; border: 2px solid var(--line); border-radius: 10px; background: #fff; color: var(--ink); }
+  textarea { min-height: 5.5rem; resize: vertical; line-height: 1.45; }
+  input:focus, textarea:focus { outline: none; border-color: var(--cobalt); }
+  .item { background: var(--paper-2); border-radius: 14px; padding: 1rem 1rem 1.1rem; margin-bottom: 1rem; }
+  .item .head { display: flex; gap: .4rem; align-items: center; }
+  .item .head strong { flex: 1; font-size: 1.1rem; }
+  .mini { border: 2px solid var(--line); background: var(--paper); border-radius: 8px; min-width: 40px; min-height: 40px; font: inherit; font-weight: 700; cursor: pointer; color: var(--ink); }
+  .mini:hover { border-color: var(--ink); }
+  .mini.del:hover { border-color: #b42318; color: #b42318; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1rem; }
+  .grid3 { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 0 1rem; }
+  .row { display: flex; gap: .75rem; flex-wrap: wrap; align-items: center; margin-top: 1.25rem; }
+  .savebar { position: fixed; left: 0; right: 0; bottom: 0; background: var(--ink); color: var(--paper); z-index: 6; transform: translateY(110%); transition: transform .2s; }
+  .savebar.show { transform: none; }
+  .savebar .in { max-width: 920px; margin: 0 auto; padding: .75rem 1.25rem; display: flex; gap: 1rem; align-items: center; }
+  .savebar span { flex: 1; }
+  .savebar .btn { border-color: var(--paper); color: var(--paper); }
+  .savebar .btn.primary { background: var(--amber); border-color: var(--amber); color: var(--ink); }
+  .toast { position: fixed; top: 1rem; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--paper); padding: .7rem 1.1rem; border-radius: 10px; z-index: 9; max-width: 92vw; }
+  .toast.err { background: #b42318; }
+  .runs { list-style: none; padding: 0; margin: 0; border-top: 1.5px solid var(--line); }
+  .runs li { display: grid; grid-template-columns: 1.2rem 1fr auto; gap: .6rem; padding: .7rem 0; border-bottom: 1.5px solid var(--line); align-items: baseline; }
+  .runs small { color: var(--muted); }
+  .dot { width: .8rem; height: .8rem; border-radius: 50%; background: var(--line); display: inline-block; }
+  .dot.ok { background: #2e9e5b; } .dot.bad { background: #b42318; } .dot.run { background: var(--amber); animation: pulse 1s infinite; }
+  @keyframes pulse { 50% { opacity: .35; } }
+  .login { max-width: 560px; padding-top: 2rem; }
+  .login ol { padding-left: 1.2rem; color: var(--muted); }
+  .login li { margin-bottom: .4rem; }
+  .thumb { width: 120px; aspect-ratio: 16/10; object-fit: cover; border-radius: 8px; background: var(--scan); display: block; }
+  details summary { cursor: pointer; font-weight: 600; margin-top: .75rem; }
+  .savebar .btn { white-space: nowrap; }
+  @media (max-width: 600px) {
+    .grid2, .grid3 { grid-template-columns: 1fr; } .panel h2 { font-size: 1.5rem; }
+    .bar .in { flex-wrap: nowrap; padding: .6rem 1rem; } .bar h1 { font-size: 1.1rem; white-space: nowrap; }
+    .bar .btn { padding: .45rem .8rem; font-size: .9rem; }
+    .savebar .in { gap: .5rem; padding: .6rem 1rem; } .savebar span { font-size: .85rem; }
+    .savebar .btn { padding: .55rem .8rem; font-size: .9rem; }
+  }
+  @media (prefers-reduced-motion: reduce) { .savebar { transition: none; } .dot.run { animation: none; } }
+</style>
+</head>
+<body>
+<div class="bar"><div class="in">
+  <h1>Site dashboard</h1>
+  <a class="btn" href="./" target="_blank" rel="noopener">View site</a>
+  <button class="btn" id="logout" hidden>Sign out</button>
+</div></div>
+
+<div class="wrap">
+  <section class="login" id="login">
+    <h2>Connect to GitHub</h2>
+    <p class="hint">The dashboard edits your site by saving files to the <b>sristy0807/sristy</b> repo. It needs a GitHub access token. The token stays in this browser and is only sent to GitHub.</p>
+    <ol>
+      <li>Open <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com → Settings → Fine-grained tokens → Generate new token</a>.</li>
+      <li>Name it "Site dashboard". Repository access: <b>Only select repositories</b> → <b>sristy</b>, <b>cardSchool</b>, <b>dhakametaverse</b>.</li>
+      <li>Permissions: <b>Contents</b> → Read and write, <b>Actions</b> → Read and write.</li>
+      <li>Generate, copy the token and paste it here.</li>
+    </ol>
+    <label for="token">Access token</label>
+    <input id="token" type="password" autocomplete="off" placeholder="github_pat_…">
+    <label style="font-weight:400;display:flex;gap:.5rem;align-items:center"><input type="checkbox" id="remember" checked style="width:auto"> Remember on this device</label>
+    <div class="row"><button class="btn primary" id="connect">Connect</button></div>
+  </section>
+
+  <div id="app" hidden>
+    <nav class="tabs" role="tablist">
+      <button role="tab" data-tab="profile" aria-selected="true">Profile</button>
+      <button role="tab" data-tab="work">Work</button>
+      <button role="tab" data-tab="games">Games</button>
+      <button role="tab" data-tab="publish">Sync and publish</button>
+    </nav>
+    <section class="panel" id="panel"></section>
+  </div>
+</div>
+
+<div class="savebar" id="savebar"><div class="in">
+  <span id="savemsg" aria-live="polite">You have unsaved changes.</span>
+  <button class="btn" id="discard">Discard</button>
+  <button class="btn primary" id="save">Save and publish</button>
+</div></div>
+
+<script src="assets/admin.js"></script>
+</body>
+</html>

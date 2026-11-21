@@ -3,9 +3,18 @@ name: Sync games
 # Copies the latest version of each game (listed in sync-games.json)
 # from its own repo into games/<folder>/ and publishes the site.
 on:
-  workflow_dispatch:        # "Run workflow" button in the Actions tab
+  repository_dispatch:      # a game repo was pushed (its "Update website" workflow)
+    types: [game-updated]
+  workflow_dispatch:        # "Run workflow" button, or "Sync now" in the dashboard
   schedule:
-    - cron: "0 */6 * * *"   # every 6 hours
+    - cron: "*/15 * * * *"  # fallback: every 15 minutes
+  push:
+    branches: [main]
+    paths: [sync-games.json] # a game was added to the sync list
+
+concurrency:
+  group: sync-games
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -16,6 +25,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Copy game files
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -e
           jq -c '.games[]' sync-games.json | while read -r g; do
@@ -24,7 +35,9 @@ jobs:
             mkdir -p "games/$folder"
             for f in $(echo "$g" | jq -r '.files[]'); do
               echo "↓ $repo/$f → games/$folder/$f"
-              curl -fsSL "https://raw.githubusercontent.com/$repo/main/$f" -o "games/$folder/$f"
+              # API (not raw.githubusercontent) so a just-pushed change isn't served from cache
+              curl -fsSL -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github.raw" \
+                "https://api.github.com/repos/$repo/contents/$f?ref=main" -o "games/$folder/$f"
             done
           done
       - name: Commit if anything changed

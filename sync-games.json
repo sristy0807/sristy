@@ -7,7 +7,13 @@
       "files": [
         "index.html"
       ]
+    },
+    {
+      "folder": "dhaka-metaverse",
+      "repo": "sristy0807/dhakametaverse",
+      "files": [
+        "index.html"
+      ]
     }
-  ],
-  "_note": "dhaka-metaverse is not synced: the site copy is newer than the dhakametaverse repo. Push the latest game to that repo first, then add it back."
+  ]
 }

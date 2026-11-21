@@ -75,3 +75,21 @@
       featuredEl.innerHTML = '<p>Games list could not load. Check that games.json is valid JSON and the page is served over http (not opened as a file).</p>';
     });
 })();
+
+// Site text from content.json (edited in the dashboard, admin.html).
+(function () {
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const $ = id => document.getElementById(id);
+  const text = (id, v) => { if ($(id) && v != null) $(id).textContent = v; };
+  fetch('content.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : Promise.reject()).then(c => {
+    text('c-name', c.name); text('c-headline', c.headline); text('c-intro', c.intro);
+    text('c-clients', c.clients); text('c-skills', c.skills); text('c-contact-intro', c.contactIntro); text('c-footer', c.footer);
+    if (c.name) document.title = `${c.name} — games, graphics and medical imaging`;
+    if (Array.isArray(c.education) && $('c-education')) $('c-education').innerHTML = c.education.map(esc).join('<br>');
+    if (Array.isArray(c.work) && $('c-work')) $('c-work').innerHTML = c.work.map(w =>
+      `<li><span class="when">${esc(w.when)}</span><div><h3>${esc(w.title)}</h3><p>${esc(w.text)}</p></div></li>`).join('');
+    if (Array.isArray(c.links) && $('c-links')) $('c-links').innerHTML = c.links.filter(l => l.url).map(l =>
+      `<li><a href="${esc(l.url)}" rel="me">${esc(l.label || l.url)}</a></li>`).join('');
+    if (c.github) document.querySelectorAll('a[href="https://github.com/sristy0807"]').forEach(a => a.href = c.github);
+  }).catch(() => { /* keep the text already in the HTML */ });
+})();

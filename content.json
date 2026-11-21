@@ -1,0 +1,21 @@
+{
+  "name": "Sristy",
+  "headline": "I build games, shaders and medical imaging software. Staff Engineer at SRBD in Dhaka, eleven years in.",
+  "intro": "From casual games played inside telecom apps across Myanmar and Thailand to the DICOM module of an ultrasound imaging project, the thread is the same: pixels on a GPU that have to look right and run fast.",
+  "github": "https://github.com/sristy0807",
+  "work": [
+    { "when": "2025 – now", "title": "Staff Engineer, SRBD", "text": "Medical imaging software on a Samsung Medison project. I own the DICOM module and work directly with the global teams in Seoul." },
+    { "when": "2021 – 2025", "title": "Portonics", "text": "Games embedded in telecom apps, shipped for operators in Myanmar and Thailand." },
+    { "when": "2020 – 2021", "title": "Advanced Apps Bangladesh", "text": "Games and apps for international clients." },
+    { "when": "2017 – 2020", "title": "Co-founder and tech lead, Pipra Studio", "text": "Co-founded a studio building games and AR/VR experiences." },
+    { "when": "2015 – 2017", "title": "Silicon Orchard", "text": "Where it started: Unity games and 3D visualisation." }
+  ],
+  "clients": "Clients over the years in Japan (Cybird, Laplace), Korea, the US, the Philippines, India, Myanmar and Thailand.",
+  "skills": "Unity3D and C#, Three.js and WebGL, GLSL/HLSL shaders and GPU profiling, Flutter, XR (AR and VR), DICOM and medical image visualisation, and lately LangChain and LangGraph for AI tooling.",
+  "education": ["MSc in Data Science, United International University (in progress).", "BSc in Computer Science and Engineering, KUET, 2013."],
+  "contactIntro": "Open to conversations about games, graphics, medical imaging and AI engineering roles.",
+  "links": [
+    { "label": "github.com/sristy0807", "url": "https://github.com/sristy0807" }
+  ],
+  "footer": "Made in Dhaka. Hosted on GitHub Pages."
+}
