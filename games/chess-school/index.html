@@ -114,7 +114,7 @@ h1,h2,h3{font-family:var(--serif);line-height:1.1;margin:0}
 @keyframes flash{50%{box-shadow:inset 0 0 0 999px rgba(63,125,58,.55)}}
 .sq.err{animation:err .5s}
 @keyframes err{50%{box-shadow:inset 0 0 0 999px rgba(162,59,42,.55)}}
-.coord{position:absolute;font:700 calc(var(--sq)*.2)/1 var(--sans);pointer-events:none;color:var(--dark)}
+.coord{position:absolute;font:700 max(10px,calc(var(--sq)*.2))/1 var(--sans);pointer-events:none;color:var(--dark)}
 .sq.d .coord{color:var(--light)}
 .coord.f{right:4%;bottom:3%}.coord.r{left:5%;top:4%}
 .pc{position:absolute;inset:4%;z-index:2;pointer-events:none;transition:transform .18s ease-out}
@@ -176,6 +176,7 @@ h1,h2,h3{font-family:var(--serif);line-height:1.1;margin:0}
   .moves{font-size:14px}
 }
 @media(min-width:760px){.menumain{grid-template-columns:1.1fr 1fr;align-items:center}}
+@media(max-width:420px){.backlbl{display:none}.topbar .dots{order:9;width:100%;justify-content:center}.topbar{flex-wrap:wrap}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 :root{--np-bg:#2b1d14;--np-fg:#f4ead6;--np-acc:#e2c15a}
 #np{position:fixed;left:0;right:0;margin-inline:auto;width:max-content;top:max(env(safe-area-inset-top),10px);transform:translateY(-160%);z-index:60;display:flex;align-items:center;gap:10px;padding:7px 7px 7px 14px;border-radius:999px;background:var(--np-bg);color:var(--np-fg);box-shadow:0 10px 30px rgba(0,0,0,.35);transition:transform .5s cubic-bezier(.2,.9,.3,1.15);max-width:min(92vw,420px);font-family:var(--np-font,inherit)}
@@ -453,7 +454,7 @@ function Jukebox(cfg){
 function nowPlaying(title,onSkip){let el=document.getElementById('np');if(!el){el=document.createElement('div');el.id='np';el.setAttribute('role','status');document.body.appendChild(el);}
   el.innerHTML=`<span class="np-ic" aria-hidden="true">♪</span><span class="np-t"><small>Now playing</small>${title}</span><button type="button" class="np-skip" aria-label="Next track">Skip ⏭︎</button>`;
   el.querySelector('.np-skip').onclick=e=>{e.stopPropagation();onSkip();};
-  el.classList.remove('np-hide');el.classList.add('np-show');clearTimeout(el._t);el._t=setTimeout(()=>{el.classList.remove('np-show');el.classList.add('np-hide');},5200);}
+  el.classList.remove('np-hide');el.classList.add('np-show');clearTimeout(el._t);el._t=setTimeout(()=>{el.classList.remove('np-show');el.classList.add('np-hide');},3800);}
 const TRACKS_CHESS=[
  {title:'Opening Theory',gain:1.5,bpm:72,key:48,scale:'major',prog:[[0,'maj'],[7,'maj'],[9,'min'],[4,'min'],[5,'maj'],[0,'maj'],[2,'min'],[7,'maj']],chord:'strings',chordPat:'x...............',chordVol:.7,
   arp:'piano',arpPat:'0212021202120212',arpOct:0,arpVol:.75,bass:'piano',bassPat:'x.......x.......',bassOct:12,lead:'piano',mel:{density:.35,rhythm:'slow'},reverbLook:true},
@@ -504,7 +505,7 @@ function boardHTML(s,o={}){const flip=!!o.flip,out=[];
     out.push(`<button class="${cls}" data-sq="${i}" ${o.static?'tabindex="-1"':''} aria-label="${sqName(i)}${p?', '+pieceName(p):''}">${co}${p?`<span class="pc" data-p="${i}">${pieceSVG(p)}</span>`:''}</button>`);}
   return `<div class="board ${flip?'flip':''}" ${o.id?`id="${o.id}"`:''} role="grid" aria-label="Chessboard">${out.join('')}</div>`;}
 function sizeBoard(){const w=innerWidth,h=innerHeight,land=w>h&&w>=700;
-  const sq=land?Math.min((h-(h<560?66:110))/8.3,(w-400)/8.3,84):Math.min((w-28)/8.3,(h-300)/8.3,80);
+  const sq=land?Math.min((h-(h<560?92:120))/8.3,(w-400)/8.3,84):Math.min((w-28)/8.3,(h-300)/8.3,80);
   document.documentElement.style.setProperty('--sq',Math.max(30,Math.floor(sq))+'px');}
 addEventListener('resize',()=>{sizeBoard();});
 /* slide the moved piece from its old square */
@@ -548,11 +549,11 @@ function renderModal(){const old=document.getElementById('ov');if(old)old.remove
     <div class="setrow"><span>Level</span><div class="seg">${[[1,'Easy'],[2,'Medium'],[3,'Hard']].map(([k,n])=>`<button data-diff="${k}" aria-pressed="${(progress.lastDiff||1)===k}">${n}</button>`).join('')}</div></div>
     <div class="setrow"><span>You play</span><div class="seg">${[['w','White'],['b','Black'],['r','Random']].map(([k,n])=>`<button data-col="${k}" aria-pressed="${(progress.lastCol||'w')===k}">${n}</button>`).join('')}</div></div>
     <div class="row"><button class="primary" id="startai">Start game</button><button class="btn" id="closem">Cancel</button></div>`;
-  if(modal==='promo')h=`<h2>Promote to</h2><div class="promo">${'QRBN'.split('').map(t=>{const p=modalData.color==='w'?t:t.toLowerCase();return `<button data-promo="${p}" aria-label="${PNAME[t]}">${pieceSVG(p)}</button>`;}).join('')}</div>`;
+  if(modal==='promo')h=`<h2>Promote to</h2><p class="muted" style="margin:0">Tap outside or press Esc to cancel.</p><div class="promo">${'QRBN'.split('').map(t=>{const p=modalData.color==='w'?t:t.toLowerCase();return `<button data-promo="${p}" aria-label="${PNAME[t]}">${pieceSVG(p)}</button>`;}).join('')}</div>`;
   if(modal==='result')h=modalData.html;
   const ov=document.createElement('div');ov.className='overlay';ov.id='ov';ov.innerHTML=`<div class="modal sheet" role="dialog" aria-modal="true">${h}</div>`;document.body.appendChild(ov);
   const on=(id,f)=>{const e=ov.querySelector('#'+id);if(e)e.onclick=f;};
-  ov.onclick=e=>{if(e.target===ov&&modal!=='welcome'&&modal!=='promo'&&modal!=='result'){modal=null;resetArm=false;render();}};
+  ov.onclick=e=>{if(e.target===ov&&modal!=='welcome'&&modal!=='result'){modal=null;resetArm=false;render();}};
   on('closem',()=>{modal=null;resetArm=false;render();});
   on('t-snd',()=>{progress.sound=!progress.sound;store.set(progress);render();});
   on('t-mus',toggleMusic);on('nexttr',()=>{MUSIC.next();setTimeout(render,700);});
@@ -560,7 +561,7 @@ function renderModal(){const old=document.getElementById('ov');if(old)old.remove
   ov.querySelectorAll('[data-board]').forEach(b=>b.onclick=()=>{progress.board=b.dataset.board;store.set(progress);render();});
   ov.querySelectorAll('[data-skillset]').forEach(b=>b.onclick=()=>{setSkill(b.dataset.skillset);render();});
   ov.querySelectorAll('[data-skill]').forEach(b=>b.onclick=()=>{setSkill(b.dataset.skill);modal=null;if(b.dataset.skill==='new')openLevel(1);else render();});
-  on('reset',()=>{if(resetArm){progress={unlocked:1,stars:{},sound:progress.sound,coords:progress.coords,board:progress.board,stats:{}};store.set(progress);clearSave();resetArm=false;modal=null;}else resetArm=true;render();});
+  on('reset',()=>{if(resetArm){progress={unlocked:1,stars:{},sound:progress.sound,music:progress.music,coords:progress.coords,board:progress.board,stats:{}};store.set(progress);clearSave();resetArm=false;modal=null;}else resetArm=true;render();});
   ov.querySelectorAll('[data-diff]').forEach(b=>b.onclick=()=>{progress.lastDiff=+b.dataset.diff;store.set(progress);render();});
   ov.querySelectorAll('[data-col]').forEach(b=>b.onclick=()=>{progress.lastCol=b.dataset.col;store.set(progress);render();});
   on('startai',()=>{const c=progress.lastCol||'w';startGame({mode:'ai',diff:progress.lastDiff||1,you:c==='r'?pick(['w','b']):c});});
@@ -648,24 +649,26 @@ function renderPuzzle(){const g=puzzleGoal(),s=P.s,sel=P.sel;
   bindCommon();if(P.last&&P.anim){animateMove(P.last.from,P.last.to,false);P.anim=false;}
   const on=(id,f)=>{const e=document.getElementById(id);if(e)e.onclick=f;};
   on('restart',startLevel);on('relesson',()=>go('lesson'));on('hint',puzzleHint);
-  bindBoard(s,'w',(m)=>puzzleMove(m),i=>{P.sel=i;render();},()=>P.sel);}
+  if(!P.done)bindBoard(s,'w',(m)=>puzzleMove(m),i=>{P.sel=i;render();},()=>P.sel);}
 function puzzleHint(){let m;
-  if(P.kind==='collect'){m=legalMoves(P.s).filter(x=>x.cap)[0];if(!m){P.msg='Move your piece so it lines up with a pawn.';P.warn=false;render();return;}}
+  if(P.kind==='collect'){if(!legalMoves(P.s).length){P.msg='No moves left. Tap Start again.';P.warn=true;render();return;}m=legalMoves(P.s).filter(x=>x.cap)[0];if(!m){P.msg='Move your piece so it lines up with a pawn.';P.warn=false;render();return;}}
   else m=legalMoves(P.s).find(x=>findOk(x));
   if(m){P.sel=m.from;P.msg=`Try the ${PNAME[m.piece.toUpperCase()]} on ${sqName(m.from)}.`;P.warn=false;P.hinted=true;render();}}
 function findOk(m){const n=makeMove(P.s,m),g=cur.goal;
   if(g==='check')return inCheck(n,'b');if(g==='mate')return inCheck(n,'b')&&!legalMoves(n).length;
   const need=P.pz.need;return need==='castle'?m.flag==='k'||m.flag==='q':need==='ep'?m.flag==='e':!!m.promo;}
 function puzzleMove(m){
+  if(P.done)return;
   if(P.kind==='collect'){P.s=nextTurnWhite(makeMove(P.s,m));P.moves++;P.last={from:m.from,to:m.to};P.anim=true;P.sel=null;P.msg='';m.cap?sfx.cap():sfx.move();
     if(m.promo){P.promoted=true;P.msg='Promoted!';}
     const left=P.s.b.filter(p=>p==='p').length;
-    if(!left&&(!cur.promote||P.promoted)){render();const st=P.moves<=P.par?3:P.moves<=P.par+2?2:1;return setTimeout(()=>finishLevel(st,'Lesson complete',`You did it in ${P.moves} moves. The best is ${P.par}.`),450);}
+    if(!left&&(!cur.promote||P.promoted)){P.done=true;render();const st=P.moves<=P.par?3:P.moves<=P.par+2?2:1,mv=P.moves,par=P.par,tok=P;return setTimeout(()=>{if(P===tok&&screen==='puzzle')finishLevel(st,'Lesson complete',`You did it in ${mv} moves. The best is ${par}.`);},450);}
+    if(!legalMoves(P.s).length){P.msg='Your piece is stuck: no moves left. Tap Start again.';P.warn=true;}
     return render();}
   const ok=findOk(m);P.hist[P.i]=P.hist[P.i]??ok;
-  if(ok){P.s=makeMove(P.s,m);P.last={from:m.from,to:m.to};P.anim=true;P.sel=null;P.warn=false;
+  if(ok){P.done=true;P.s=makeMove(P.s,m);P.last={from:m.from,to:m.to};P.anim=true;P.sel=null;P.warn=false;
     P.msg=cur.goal==='mate'?'Checkmate!':cur.goal==='check'?'Check!':pick(['Perfect.','Exactly right.']);inCheck(P.s)?sfx.check():sfx.good();render();
-    setTimeout(()=>{if(screen!=='puzzle')return;P.i++;if(P.i>=cur.puzzles.length){const errs=P.hist.filter(x=>!x).length;finishLevel(errs===0?3:errs===1?2:1,'Lesson complete',errs?`Solved, with ${errs} wrong tr${errs>1?'ies':'y'} on the way.`:'Every puzzle right first time!');}else{loadFind();render();}},1100);}
+    const tok=P;setTimeout(()=>{if(screen!=='puzzle'||P!==tok)return;P.done=false;P.i++;if(P.i>=cur.puzzles.length){const errs=P.hist.filter(x=>!x).length;finishLevel(errs===0?3:errs===1?2:1,'Lesson complete',errs?`Solved, with ${errs} wrong tr${errs>1?'ies':'y'} on the way.`:'Every puzzle right first time!');}else{loadFind();render();}},1100);}
   else{sfx.bad();P.sel=null;P.warn=true;P.msg=cur.goal==='mate'?(inCheck(makeMove(P.s,m),'b')?'That is check, but the king can escape. Look again.':'That move isn\'t check. Look for a checkmate.'):cur.goal==='check'?'That doesn\'t attack the king. Try another move.':'Not this one. Read the hint above the board.';render();
     const el=app.querySelector(`[data-sq="${m.to}"]`);if(el)el.classList.add('err');}}
 
@@ -673,7 +676,7 @@ function puzzleMove(m){
 function bindBoard(s,side,onMove,onSelect,getSel){const board=app.querySelector('.board');if(!board)return;
   const legal=legalMoves(s);let drag=null;
   const tryMove=(from,to)=>{const ms=legal.filter(m=>m.from===from&&m.to===to);if(!ms.length)return false;
-    if(ms.length>1&&ms[0].promo){if(P&&screen==='puzzle'){onMove(ms.find(m=>m.promo.toUpperCase()==='Q'));return true;}
+    if(ms.length>1&&ms[0].promo){if(P&&screen==='puzzle'&&P.kind==='collect'){onMove(ms.find(m=>m.promo.toUpperCase()==='Q'));return true;}
       modalData={color:s.turn,done:p=>onMove(ms.find(m=>m.promo===p))};modal='promo';renderModal();return true;}
     onMove(ms[0]);return true;};
   const mine=i=>s.b[i]&&colorOf(s.b[i])===side&&s.turn===side;
@@ -697,24 +700,24 @@ function startGame(o){clearSave();modal=null;
   G={mode:o.mode,diff:o.diff||1,you:o.mode==='2p'?'w':(o.you||'w'),lvl:o.lvl||null,start:o.start||START_FEN,moves:[],sans:[],states:[],keys:[],sel:null,over:null,thinking:false,hintMv:null};
   G.states=[parseFEN(G.start)];G.keys=[posKey(G.states[0])];G.flip=G.you==='b';
   if(o.moves)for(const mv of o.moves){const s=gs(),m=legalMoves(s).find(x=>x.from===mv.from&&x.to===mv.to&&(x.promo||null)===(mv.promo||null));if(!m)break;pushMove(m,true);}
-  go('game');maybeAI();}
+  if(G.moves.length)saveGame();go('game');maybeAI();}
 function resumeGame(){const sv=loadSave();if(!sv)return;startGame({mode:sv.mode,diff:sv.diff,you:sv.you,lvl:sv.lvl,start:sv.start,moves:sv.moves});if(sv.lvl)cur=LEVELS[sv.lvl-1];}
 const gs=()=>G.states[G.states.length-1];
 function pushMove(m,silent){const s=gs();G.sans.push(san(s,m));const n=makeMove(s,m);G.moves.push(m);G.states.push(n);G.keys.push(posKey(n));G.sel=null;G.hintMv=null;
   if(!silent){const st=gameStatus(n,G.keys);inCheck(n)?sfx.check():m.cap?sfx.cap():sfx.move();G.anim={from:m.from,to:m.to};if(st!=='play')return endGame(st);saveGame();}}
 function maybeAI(){if(!G||G.over||G.mode!=='ai'||gs().turn===G.you)return;G.thinking=true;render();
-  const id=G;setTimeout(()=>{if(G!==id||screen!=='game')return;const m=bestMove(gs(),G.diff);G.thinking=false;if(m)pushMove(m);render();},380);}
+  const id=G;setTimeout(()=>{if(G!==id||screen!=='game'||G.over)return;const m=bestMove(gs(),G.diff);G.thinking=false;if(m)pushMove(m);render();},380);}
 function humanMove(m){if(G.over||G.thinking)return;pushMove(m);render();maybeAI();}
-function undo(){if(G.thinking||G.moves.length===0)return;const back=G.mode==='ai'?(gs().turn===G.you?2:1):1;
+function undo(){if(G.thinking||G.over||G.moves.length===0)return;const back=G.mode==='ai'?(gs().turn===G.you?2:1):1;
   for(let i=0;i<back&&G.moves.length;i++){G.moves.pop();G.sans.pop();G.states.pop();G.keys.pop();}
-  G.over=null;G.sel=null;G.hintMv=null;saveGame();render();}
-function hint(){if(G.over||G.thinking)return;G.thinking=true;render();setTimeout(()=>{const m=bestMove(gs(),3);G.thinking=false;G.hintMv=m;G.sel=m?m.from:null;render();},60);}
-function captured(color){/* pieces of `color` that are gone */
-  const start={P:8,N:2,B:2,R:2,Q:1},now={P:0,N:0,B:0,R:0,Q:0};for(const p of gs().b)if(p&&colorOf(p)===color&&p.toUpperCase()!=='K')now[p.toUpperCase()]++;
-  const out=[];for(const t of'QRBNP')for(let i=0;i<Math.max(0,start[t]-now[t]);i++)out.push(color==='w'?t:t.toLowerCase());return out;}
+  G.sel=null;G.hintMv=null;if(G.moves.length)saveGame();else clearSave();render();maybeAI();}
+function hint(){if(G.over||G.thinking)return;G.thinking=true;render();const id=G;setTimeout(()=>{if(G!==id||screen!=='game')return;const m=bestMove(gs(),3);G.thinking=false;G.hintMv=m;G.sel=m?m.from:null;render();},60);}
+function captured(color){/* pieces of `color` that were captured during this game */
+  const order='QRBNP',out=G.moves.filter(m=>m.cap&&colorOf(m.cap)===color).map(m=>m.cap);
+  return out.sort((a,b)=>order.indexOf(a.toUpperCase())-order.indexOf(b.toUpperCase()));}
 function material(c){return gs().b.reduce((a,p)=>a+(p&&colorOf(p)===c?VALS[p.toUpperCase()]:0),0);}
 const RES_TXT={checkmate:'Checkmate',stalemate:'Stalemate: no legal moves, so it\'s a draw.',draw50:'Draw by the 50-move rule.',material:'Draw: not enough pieces left to checkmate.',repetition:'Draw by repetition.',resign:'Resigned'};
-function endGame(st,resigner){const s=gs();let res,title;
+function endGame(st,resigner){if(G.over)return;const s=gs();let res,title;
   if(st==='checkmate'){const winner=opp(s.turn);title=G.mode==='2p'?`${winner==='w'?'White':'Black'} wins!`:winner===G.you?'You win!':'The computer wins';res=G.mode==='2p'?'2p':winner===G.you?'win':'loss';}
   else if(st==='resign'){title=G.mode==='2p'?`${resigner==='w'?'Black':'White'} wins`:'You resigned';res=G.mode==='2p'?'2p':'loss';}
   else{title='Draw';res=G.mode==='2p'?'2p':'draw';}
@@ -722,7 +725,7 @@ function endGame(st,resigner){const s=gs();let res,title;
   if(G.mode==='ai'){recordResult('ai',res);recordResult('ai'+G.diff,res);if(G.lvl){cur=LEVELS[G.lvl-1];complete(G.lvl,res==='win'?3:res==='draw'?2:1);}}
   setTimeout(()=>{(res==='win'||res==='2p')?sfx.win():res==='loss'?sfx.lose():sfx.good();
     const stars=G.lvl?(res==='win'?3:res==='draw'?2:1):0;
-    modalData={html:`<h2 class="result-txt">${esc(title)}</h2>${stars?`<div class="bigstars">${'★'.repeat(stars)}${'☆'.repeat(3-stars)}</div>`:''}<p class="result-txt">${st==='checkmate'||st==='resign'?`${G.moves.length?`After ${Math.ceil(G.moves.length/2)} moves.`:''}`:RES_TXT[st]}</p>
+    modalData={html:`<h2 class="result-txt">${esc(title)}</h2>${stars?`<div class="bigstars">${'★'.repeat(stars)}${'☆'.repeat(3-stars)}</div>`:''}<p class="result-txt">${st==='checkmate'||st==='resign'?`${G.moves.length?`After ${Math.ceil(G.moves.length/2)} move${Math.ceil(G.moves.length/2)===1?'':'s'}.`:''}`:RES_TXT[st]}</p>
       <div class="row" style="justify-content:center"><button class="primary" id="again">Play again</button><button class="btn" id="review">Look at the board</button><button class="btn" id="tomenu">Menu</button></div>`,
       bind:ov=>{const on=(id,f)=>{const e=ov.querySelector('#'+id);if(e)e.onclick=f;};on('again',()=>startGame({mode:G.mode,diff:G.diff,you:G.mode==='ai'&&(progress.lastCol||'w')==='r'?pick(['w','b']):G.you,lvl:G.lvl}));on('review',()=>{modal=null;render();});on('tomenu',()=>{G=null;go('home');});}};
     modal='result';render();},600);}
@@ -739,8 +742,8 @@ function renderGame(){const s=gs(),you=G.mode==='2p'?s.turn:G.you,flip=G.flip;
     ${boardHTML(s,{flip,sel,targets:new Set(legal.map(m=>m.to)),epTarget:s.ep,last,check:inCheck(s)?kingSq(s.b,s.turn):-1})}
     ${strip(bot,'bot')}
     <div class="side"><div class="status ${inCheck(s)&&!G.over?'warn':''}" aria-live="polite">${st||'&nbsp;'}</div>
-      <div class="ctrls"><button class="btn" id="undo" ${!G.moves.length||G.thinking?'disabled':''}>Undo</button>${G.mode==='ai'?`<button class="btn" id="hint" ${G.over||G.thinking?'disabled':''}>Hint</button>`:''}<button class="btn" id="flip" aria-label="Flip board">Flip</button>
-        ${G.over?'<button class="primary" id="newg">New game</button>':'<button class="btn" id="resign">Resign</button>'}</div>
+      <div class="ctrls"><button class="btn" id="undo" ${!G.moves.length||G.thinking||G.over?'disabled':''}>Undo</button>${G.mode==='ai'?`<button class="btn" id="hint" ${G.over||G.thinking?'disabled':''}>Hint</button>`:''}<button class="btn" id="flip" aria-label="Flip board">Flip</button>
+        ${G.over?'<button class="primary" id="newg">New game</button>':`<button class="btn" id="resign" ${G.thinking?'disabled':''}>Resign</button>`}</div>
       <div class="movesline">${list.map(([n,a,b])=>`<span><span class="n">${n}.</span> ${a}${b?' '+b:''}</span>`).join('')}</div>
       <div class="moves sheet"><ol>${list.map(([n,a,b])=>`<li><b>${a}</b>${b?`&nbsp;&nbsp;${b}`:''}</li>`).join('')||'<span class="muted">Moves appear here.</span>'}</ol></div></div></div>`;
   bindCommon();
@@ -755,7 +758,7 @@ function renderGame(){const s=gs(),you=G.mode==='2p'?s.turn:G.you,flip=G.flip;
 /* ---------- start ---------- */
 addEventListener('orientationchange',()=>setTimeout(()=>{sizeBoard();render();},250));
 addEventListener('resize',()=>{clearTimeout(window.__rt);window.__rt=setTimeout(()=>{if(screen!=='home'&&screen!=='levels'&&screen!=='lesson')render();},150);});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal&&modal!=='welcome'&&modal!=='promo'){modal=null;render();}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal&&modal!=='welcome'&&modal!=='result'){modal=null;render();}});
 sizeBoard();render();
 }
 </script>

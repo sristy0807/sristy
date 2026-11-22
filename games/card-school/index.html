@@ -261,18 +261,19 @@ body.scr-table #app{max-width:1200px;height:100dvh;padding:8px max(env(safe-area
 .backlbl{display:inline}
 @media(max-width:600px){
   .backlbl{display:none}
+  .tbl .info{flex-wrap:wrap;white-space:normal;row-gap:2px;column-gap:10px;font-size:12px}
   .topbar .grow{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .topbar .dots{order:9;width:100%;justify-content:center}
   .tbl .seat .sub2{display:none}
   .tbl .actions{gap:6px}
-  .tbl .actions [data-bid]{flex:1 0 34px;max-width:44px;padding:6px 0;min-height:42px}
+  .tbl .actions [data-bid]{flex:1 0 38px;max-width:48px;padding:6px 0;min-height:44px}
 }
 /* phone landscape: short screens */
 @media(orientation:landscape) and (max-height:560px){
   body.scr-table #app{padding-top:4px}
   .tbl{gap:2px}
-  .tbl .topbar .btn{min-height:36px;padding:4px 10px}
-  .tbl .topbar .btn.icon{width:36px}
+  .tbl .topbar .btn{min-height:40px;padding:4px 10px}
+  .tbl .topbar .btn.icon{width:40px}
   .tbl .board{grid-template-columns:minmax(0,1fr) minmax(0,3fr) minmax(0,1fr);grid-template-areas:"w n e" "w c e";grid-template-rows:auto minmax(0,1fr)}
   .tbl .s2{padding:2px 10px}
   .tbl .s2 .sub2{display:none}
@@ -280,9 +281,10 @@ body.scr-table #app{max-width:1200px;height:100dvh;padding:8px max(env(safe-area
   .slot0{bottom:0}.slot2{top:0}
   .status{min-height:30px}
   .tbl .msg{font-size:14px}.tbl .explainbar{font-size:12px}
-  .tbl .actions .btn,.tbl .actions .primary{min-height:36px;padding:4px 12px;font-size:15px}
+  .tbl .actions .btn,.tbl .actions .primary{min-height:44px;padding:4px 12px;font-size:15px}
   .tbl .actions .hint{font-size:12px}
   .tbl .actions{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(var(--cw)*1.4 + 24px);z-index:4;width:min(92%,640px);background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(6px);border:1px solid var(--line);border-radius:16px;padding:8px;box-shadow:0 10px 30px rgba(2,6,23,.25)}
+  .tbl .actions.inplay{left:auto;right:8px;transform:none;width:auto;max-width:44%}
   .mine{flex-direction:row;align-items:flex-end;gap:8px}
   .mine .youbar{flex:none;margin-bottom:6px}
   .mine .hand{flex:1;min-width:0;padding-top:14px}
@@ -370,14 +372,14 @@ const fmt=v=>(v<0?'−':'')+(Number.isInteger(v)?Math.abs(v):Math.abs(v).toFixed
 
 /* ---------- storage ---------- */
 const KEY='cardschool.v1';
-const store={get(d){try{const v=localStorage.getItem(KEY);return v?JSON.parse(v):d}catch(e){return d}},set(v){try{localStorage.setItem(KEY,JSON.stringify(v))}catch(e){}}};
+const store={get(d){try{const v=JSON.parse(localStorage.getItem(KEY));if(!v||typeof v!=='object'||Array.isArray(v))return d;const o={...d,...v};if(!o.stars||typeof o.stars!=='object')o.stars={};o.unlocked=Math.max(1,Math.min(10,+o.unlocked||1));return o;}catch(e){return d}},set(v){try{localStorage.setItem(KEY,JSON.stringify(v))}catch(e){}}};
 let progress=store.get({unlocked:1,stars:{}});
 /* saved game: written whenever the table is waiting for the player, so it can be resumed exactly there */
 const SAVE_KEY='cardschool.game.v1';
 function saveGame(){if(!G||!cur)return;try{localStorage.setItem(SAVE_KEY,JSON.stringify({lvl:cur.id,at:Date.now(),g:{...G,showRules:false,celebrate:false,shakeIdx:null,gotSeat:-1,warn:false}}));}catch(e){}}
 function loadSave(){try{const v=JSON.parse(localStorage.getItem(SAVE_KEY));return v&&v.g&&LEVELS[v.lvl-1]?v:null;}catch(e){return null;}}
 function clearSave(){try{localStorage.removeItem(SAVE_KEY);}catch(e){}}
-function resumeGame(){const sv=loadSave();if(!sv)return;cur=LEVELS[sv.lvl-1];G=sv.g;G.id=++gid;go('table');}
+function resumeGame(){const sv=loadSave();if(!sv)return;try{if(!Array.isArray(sv.g.hands)||sv.g.hands.length!==4||!Array.isArray(sv.g.trick))throw new Error('bad save');cur=LEVELS[sv.lvl-1];G=sv.g;G.dealing=false;G.id=++gid;go('table');}catch(e){clearSave();G=null;go('home');}}
 function recordResult(mode,won){const st=progress.stats=progress.stats||{};const m=st[mode]=st[mode]||{played:0,won:0};m.played++;if(won)m.won++;store.set(progress);}
 function setSkill(k){progress.skill=k;if(k==='pro')progress.unlocked=LEVELS.length;store.set(progress);}
 function complete(id,stars){progress.stars[id]=Math.max(progress.stars[id]||0,stars);progress.unlocked=Math.max(progress.unlocked,Math.min(LEVELS.length,id+1));store.set(progress);}
@@ -533,7 +535,7 @@ function Jukebox(cfg){
 function nowPlaying(title,onSkip){let el=document.getElementById('np');if(!el){el=document.createElement('div');el.id='np';el.setAttribute('role','status');document.body.appendChild(el);}
   el.innerHTML=`<span class="np-ic" aria-hidden="true">♪</span><span class="np-t"><small>Now playing</small>${title}</span><button type="button" class="np-skip" aria-label="Next track">Skip ⏭︎</button>`;
   el.querySelector('.np-skip').onclick=e=>{e.stopPropagation();onSkip();};
-  el.classList.remove('np-hide');el.classList.add('np-show');clearTimeout(el._t);el._t=setTimeout(()=>{el.classList.remove('np-show');el.classList.add('np-hide');},5200);}
+  el.classList.remove('np-hide');el.classList.add('np-show');clearTimeout(el._t);el._t=setTimeout(()=>{el.classList.remove('np-show');el.classList.add('np-hide');},3800);}
 const TRACKS_CARD=[
  {title:'Tea Stall Shuffle',bpm:86,swing:.18,key:57,scale:'dorian',prog:[[0,'m7'],[-4,'maj7'],[3,'maj7'],[-2,'6']],chord:'keys',chordPat:'x.....x.........',
   bass:'bass',bassPat:'x.....x...x.....',lead:'pluck',mel:{density:.35},drums:{k:'x.........x.....',s:'....x.......x...',h:'..x...x...x...x.'},arp:'keys',arpPat:'0.1.2.3.2.1.3.2.',arpVol:.5},
@@ -698,6 +700,9 @@ const LEVELS=[
 ];
 
 /* ---------- navigation ---------- */
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&showSettings){showSettings=false;resetArm=false;render();}
+  if(e.key==='Tab'){const dlg=document.querySelector('#setov .modal,#welcome .modal');if(dlg){const fs=[...dlg.querySelectorAll('button')];if(fs.length&&!dlg.contains(document.activeElement)){e.preventDefault();fs[0].focus();}else if(fs.length){const i=fs.indexOf(document.activeElement);if(e.shiftKey&&i===0){e.preventDefault();fs[fs.length-1].focus();}else if(!e.shiftKey&&i===fs.length-1){e.preventDefault();fs[0].focus();}}}}});
+document.addEventListener('click',e=>{if(e.isTrusted&&screen==='quiz'&&renderQuiz._t&&Date.now()-renderQuiz._t<350&&e.target.closest('button,a')){e.stopPropagation();e.preventDefault();}},true);
 const app=document.getElementById('app');
 let screen='home',cur=null,Q=null,G=null,resetArm=false,showSettings=false;
 function go(s){screen=s;render();window.scrollTo(0,0);}
@@ -720,13 +725,14 @@ function quickPlay(id){cur=LEVELS[id-1];startLevel();}
 
 function settingsHTML(){if(!showSettings)return '';const a=audioPrefs(),th=progress.theme||'auto';
   const tg=(k,label)=>`<div class="setrow"><span>${label}</span><button class="toggle" data-set="${k}" aria-pressed="${a[k]}" aria-label="${label}"></button></div>`;
-  return `<div class="overlay" id="setov"><div class="modal" role="dialog" aria-label="Settings"><h2>Settings</h2>
+  return `<div class="overlay" id="setov"><div class="modal" role="dialog" aria-modal="true" aria-label="Settings"><h2>Settings</h2>
     <div class="setrow"><span>Music${MUSIC.playing&&MUSIC.title?`<br><small class="bn" style="font-family:inherit">♪ ${MUSIC.title}</small>`:''}</span><span style="display:flex;gap:8px;align-items:center">${a.music?'<button class="btn" id="nexttr">Next track</button>':''}<button class="toggle" data-set="music" aria-pressed="${a.music}" aria-label="Music"></button></span></div>${tg('sfx','Sound effects')}
     <div class="setrow"><span>Theme</span><div class="seg">${['auto','light','dark'].map(t=>`<button data-theme="${t}" aria-pressed="${th===t}">${t[0].toUpperCase()+t.slice(1)}</button>`).join('')}</div></div>
     <div class="setrow"><span>Experience</span><div class="seg"><button data-skillset="new" aria-pressed="${progress.skill!=='pro'}">Learning</button><button data-skillset="pro" aria-pressed="${progress.skill==='pro'}">I already play</button></div></div>
     <div class="setrow"><span>Progress<br><small class="bn" style="font-family:inherit">Saved in this browser</small></span><button class="btn danger" id="reset">${resetArm?'Tap again to erase':'Reset progress'}</button></div>
     <div class="actions" style="margin-top:16px"><button class="primary" id="closeset">Done</button></div></div></div>`;}
 function bindSettings(){
+  {const dlg=document.querySelector('#setov .modal,#welcome .modal');if(dlg&&!dlg.contains(document.activeElement)){const f=dlg.querySelector('button');if(f)f.focus({preventScroll:true});}}
   const on=(id,f)=>{const e=document.getElementById(id);if(e)e.onclick=f;};
   on('settings',()=>{showSettings=true;render();});
   on('closeset',()=>{showSettings=false;resetArm=false;render();});on('nexttr',()=>{MUSIC.next();setTimeout(render,700);});
@@ -743,7 +749,7 @@ function saveLabel(sv){const g=sv.g,nm=MODE_NAME[g.mode]||LEVELS[sv.lvl-1].title
 function statLine(mode,id){const m=(progress.stats||{})[mode];if(id>progress.unlocked)return `🔒 Unlocks at level ${id}`;
   return m&&m.played?`Won ${m.won} of ${m.played}`:'Quick game';}
 function welcomeHTML(){if(progress.skill||Object.keys(progress.stars).length)return '';
-  return `<div class="overlay" id="welcome"><div class="modal welcome" role="dialog" aria-labelledby="wh">
+  return `<div class="overlay" id="welcome"><div class="modal welcome" role="dialog" aria-modal="true" aria-labelledby="wh">
     <h2 id="wh">Have you played cards before?</h2>
     <p class="hint">Your progress is saved on this device, so you can stop any time and carry on later.</p>
     <button class="mbtn" data-skill="new"><span>I'm new to cards<br><small>Learn step by step, from the suits up</small></span><span class="suitic">♣︎</span></button>
@@ -805,6 +811,7 @@ function startLevel(){
 
 /* ---------- quiz ---------- */
 function renderQuiz(){
+  renderQuiz._t=Date.now();
   if(Q.done)return renderResult();
   const q=Q.q;
   const dots=Array.from({length:Q.n},(_,i)=>`<span class="dot ${i<Q.i?(Q.hist[i]?'g':'r'):i===Q.i?'now':''}"></span>`).join('');
@@ -846,11 +853,11 @@ function beginDeal(){
   if(g.mode==='29'){
     g.deck=shuffle(deck32());for(let p=0;p<4;p++)g.hands[p]=sortHand(g.deck.splice(0,4),'29');
     g.trump=null;g.trumpRevealed=false;g.auction={high:15,holder:null,passed:[false,false,false,false],turn:(g.dealer+1)%4};
-    g.phase='bid';g.msg='Bidding on your first 4 cards. Lowest bid is 16.';render();dealAnim(4);later(stepAuction,dealDelay(4));return;}
+    g.phase='bid';g.msg='Bidding on your first 4 cards. Lowest bid is 16.';g.dealing=true;render();dealAnim(4);later(()=>{g.dealing=false;stepAuction();},dealDelay(4));return;}
   const d=shuffle(deck52());for(let p=0;p<4;p++)g.hands[p]=sortHand(d.splice(0,13),'std');
   g.trump='S';g.trumpRevealed=true;
-  if(g.mode==='practice'){g.phase='play';g.turn=(g.dealer+1)%4;g.msg=g.turn===0?'You lead the first trick. Play any card.':`${SEATN[g.turn]} leads first.`;render();dealAnim(13);later(nextTurn,dealDelay(13));return;}
-  g.phase='bid';g.bidTurn=(g.dealer+1)%4;g.bidCount=0;g.msg='Everyone calls how many tricks they will win.';render();dealAnim(13);later(stepBidCB,dealDelay(13));
+  if(g.mode==='practice'){g.phase='play';g.turn=(g.dealer+1)%4;g.msg=g.turn===0?'You lead the first trick. Play any card.':`${SEATN[g.turn]} leads first.`;g.dealing=true;render();dealAnim(13);later(()=>{g.dealing=false;nextTurn();},dealDelay(13));return;}
+  g.phase='bid';g.bidTurn=(g.dealer+1)%4;g.bidCount=0;g.msg='Everyone calls how many tricks they will win.';g.dealing=true;render();dealAnim(13);later(()=>{g.dealing=false;stepBidCB();},dealDelay(13));
 }
 /* Call Bridge calls */
 function estimateTricks(h){let t=0;const by={};for(const c of h)(by[c.s]=by[c.s]||[]).push(c);
@@ -862,8 +869,8 @@ function estimateTricks(h){let t=0;const by={};for(const c of h)(by[c.s]=by[c.s]
 function stepBidCB(){const g=G;
   if(g.bidCount===4){g.phase='play';g.turn=(g.dealer+1)%4;g.msg='Calls done — Spades ♠︎ are trump. Play!';render();nextTurn();return;}
   const p=g.bidTurn;if(p===0){render();return;}
-  later(()=>{g.bids[p]=estimateTricks(g.hands[p]);g.msg=`${SEATN[p]} calls ${g.bids[p]}.`;g.bidTurn=(p+1)%4;g.bidCount++;render();stepBidCB();},600);}
-function humanBidCB(n){const g=G;if(g.phase!=='bid'||g.bidTurn!==0)return;sfx.bid();g.bids[0]=n;g.msg=`You call ${n}.`;g.bidTurn=1;g.bidCount++;render();stepBidCB();}
+  later(()=>{if(g.phase!=='bid'||g.bidTurn!==p||g.bids[p]!==null)return;g.bids[p]=estimateTricks(g.hands[p]);g.msg=`${SEATN[p]} calls ${g.bids[p]}.`;g.bidTurn=(p+1)%4;g.bidCount++;render();stepBidCB();},600);}
+function humanBidCB(n){const g=G;if(g.dealing||g.phase!=='bid'||g.bidTurn!==0||g.bids[0]!==null)return;sfx.bid();g.bids[0]=n;g.msg=`You call ${n}.`;g.bidTurn=1;g.bidCount++;render();stepBidCB();}
 /* 29 auction */
 function suitScore29(h,s){const cs=h.filter(c=>c.s===s);return cs.length+(cs.some(c=>c.r===11)?2:0)+(cs.some(c=>c.r===9)?1.5:0)+(cs.some(c=>c.r===14)?.5:0);}
 function botMax29(h){const best=Math.max(...SUITS.map(s=>suitScore29(h,s)));const jacks=h.filter(c=>c.r===11).length;return Math.min(22,14+Math.round(best)+Math.max(0,jacks-1));}
@@ -873,19 +880,20 @@ function stepAuction(){const g=G,a=g.auction;const active=[0,1,2,3].filter(p=>!a
   if(active.length<=1)return endAuction();
   while(a.passed[a.turn]||a.turn===a.holder)a.turn=(a.turn+1)%4;
   const p=a.turn;if(p===0){render();return;}
-  later(()=>{const nx=Math.max(16,a.high+1);
+  later(()=>{if(g.phase!=='bid'||a.turn!==p||a.passed[p]||a.holder===p)return;const nx=Math.max(16,a.high+1);
     if(nx<=botMax29(g.hands[p])&&nx<=28){a.high=nx;a.holder=p;g.msg=`${SEATN[p]} bids ${nx}.`;}else{a.passed[p]=true;g.msg=`${SEATN[p]} passes.`;}
-    a.turn=(p+1)%4;render();stepAuction();},650);}
-function humanBid29(v){const g=G,a=g.auction;if(g.phase!=='bid'||a.turn!==0)return;sfx.bid();
+    a.turn=(p+1)%4;skipAuction(a);render();stepAuction();},650);}
+function skipAuction(a){if([0,1,2,3].filter(q=>!a.passed[q]).length>1){let k=0;while((a.passed[a.turn]||a.turn===a.holder)&&k++<4)a.turn=(a.turn+1)%4;}}
+function humanBid29(v){const g=G,a=g.auction;if(g.dealing||g.phase!=='bid'||a.turn!==0||a.holder===0||a.passed[0])return;sfx.bid();
   if(v==='pass'){a.passed[0]=true;g.msg='You pass.';}else{a.high=v;a.holder=0;g.msg=`You bid ${v}.`;}
-  a.turn=1;render();stepAuction();}
+  a.turn=1;skipAuction(a);render();stepAuction();}
 function endAuction(){const g=G,a=g.auction;g.bidder=a.holder;g.bidValue=a.high;g.phase='trump';
   if(g.bidder===0){g.msg=`You won the bid at ${a.high}. Pick a trump suit — only you will know it.`;render();return;}
   render();
   later(()=>{g.trump=bestSuit29(g.hands[g.bidder]);g.msg=`${SEATN[g.bidder]} won the bid at ${a.high} and secretly chose trump.`;finishDeal29();},800);}
-function humanTrump(s){const g=G;if(g.phase!=='trump'||g.bidder!==0)return;sfx.reveal();g.trump=s;g.msg=`Your secret trump is ${SYM[s]} ${SNAME[s]}.`;finishDeal29();}
+function humanTrump(s){const g=G;if(g.phase!=='trump'||g.bidder!==0||g.trump)return;sfx.reveal();g.trump=s;g.msg=`Your secret trump is ${SYM[s]} ${SNAME[s]}.`;finishDeal29();}
 function finishDeal29(){const g=G;for(let p=0;p<4;p++)g.hands[p]=sortHand(g.hands[p].concat(g.deck.splice(0,4)),'29');
-  g.phase='play';g.turn=(g.dealer+1)%4;render();dealAnim(4);later(nextTurn,dealDelay(4));}
+  g.phase='play';g.turn=(g.dealer+1)%4;g.dealing=true;render();dealAnim(4);later(()=>{g.dealing=false;nextTurn();},dealDelay(4));}
 
 /* play */
 function legal(p){const g=G,h=g.hands[p];if(!g.trick.length)return h.slice();
@@ -893,9 +901,9 @@ function legal(p){const g=G,h=g.hands[p];if(!g.trick.length)return h.slice();
   if(g.mode!=='29'||g.mustTrump===p){const t=h.filter(c=>c.s===g.trump);if(t.length)return t;}
   return h.slice();}
 function nextTurn(){const g=G;if(g.trick.length===4){later(resolveTrick,650);return;}
-  if(g.turn===0){render();return;}later(()=>botTurn(g.turn),700);}
-function playCard(p,c){sfx.card();const g=G,h=g.hands[p];h.splice(h.indexOf(c),1);g.trick.push({p,c});g.turn=(p+1)%4;render();nextTurn();}
-function humanPlay(i){const g=G;if(!g||g.phase!=='play'||g.turn!==0||g.trick.length>=4)return;
+  if(g.turn===0){render();return;}const p=g.turn;later(()=>botTurn(p),700);}
+function playCard(p,c){const g=G,h=g.hands[p];if(g.trick.length>=4||g.turn!==p||!h.includes(c))return;sfx.card();h.splice(h.indexOf(c),1);g.trick.push({p,c});g.turn=(p+1)%4;render();nextTurn();}
+function humanPlay(i){const g=G;if(!g||g.dealing||g.phase!=='play'||g.turn!==0||g.trick.length>=4)return;
   const c=g.hands[0][i];if(!legal(0).includes(c)){sfx.illegal();g.msg=whyIllegal();g.warn=true;g.shakeIdx=i;render();g.warn=false;g.shakeIdx=-1;return;}
   g.msg='';playCard(0,c);}
 function whyIllegal(){const ls=G.trick[0].c.s;
@@ -905,7 +913,7 @@ function canReveal(){const g=G;return g.mode==='29'&&g.phase==='play'&&g.turn===
 function humanReveal(){const g=G;if(!canReveal())return;sfx.reveal();g.trumpRevealed=true;g.mustTrump=0;
   const has=g.hands[0].some(c=>c.s===g.trump);
   g.msg=`Trump is ${SYM[g.trump]} ${SNAME[g.trump]}! ${has?'You must play one now.':'You have none, so play any card.'}`;render();}
-function botTurn(p){const g=G;
+function botTurn(p){const g=G;if(!g||g.phase!=='play'||g.turn!==p||p===0||g.trick.length>=4)return;
   if(g.mode==='29'&&g.trick.length&&!g.trumpRevealed&&!g.hands[p].some(c=>c.s===g.trick[0].c.s)){
     const cards=g.trick.map(t=>t.c),winP=g.trick[winnerIdx(cards,null,'29')].p;
     if((winP+2)%4!==p){sfx.reveal();g.trumpRevealed=true;g.mustTrump=p;g.msg=`${SEATN[p]} has no ${SYM[g.trick[0].c.s]} and asks to reveal trump: it's ${SYM[g.trump]} ${SNAME[g.trump]}!`;}}
@@ -960,8 +968,8 @@ function endDeal(){const g=G;g.phase='summary';let html='',final=g.round>=g.maxR
 function nextRound(){const g=G;g.round++;g.dealer=(g.dealer+1)%4;beginDeal();}
 
 /* table render */
-function renderTable(){const g=G;if(!g)return;
-  const myTurn=g.phase==='play'&&g.turn===0&&g.trick.length<4,L=myTurn?legal(0):[];
+function renderTable(){const g=G;if(!g)return;{const rm=app.querySelector('.modal.lesson');renderTable._rs=rm?rm.scrollTop:0;}
+  const myTurn=!g.dealing&&g.phase==='play'&&g.turn===0&&g.trick.length<4,L=myTurn?legal(0):[];
   const turnOf=p=>(g.phase==='play'&&g.turn===p&&g.trick.length<4)||(g.phase==='bid'&&(g.mode==='cb'?g.bidTurn===p:g.auction.turn===p&&!g.auction.passed[p]));
   const sub=p=>g.mode==='cb'?`Call ${g.bids[p]??'–'} · Won ${g.tricksWon[p]}`:g.mode==='29'&&g.phase==='bid'?(g.auction.passed[p]?'passed':g.auction.holder===p?`bid ${g.auction.high}`:'&nbsp;'):`Tricks ${g.tricksWon[p]}`;
   const seat=p=>`<div class="seat s${p} ${turnOf(p)?'turn':''} ${g.gotSeat===p?'got':''}"><div class="sname">${SEATN[p]}${g.mode==='29'&&p===2?' <span class="pt">partner</span>':''}${g.mode==='29'&&g.bidder===p?` <span class="pt bidtag">bid ${g.bidValue}</span>`:''}</div>${p?`<div class="sub2">🂠 ${g.hands[p].length}</div>`:''}<div>${sub(p)}</div></div>`;
@@ -974,13 +982,13 @@ function renderTable(){const g=G;if(!g)return;
   if(g.mode==='cb')info+=`<span>Round <b>${g.round}/${g.maxRounds}</b></span><span>Totals: ${[0,1,2,3].map(p=>`${SEATN[p]} <b>${fmt(g.scores10[p]/10)}</b>`).join(' · ')}</span>`;
   if(g.mode==='29')info+=`<span>Deal <b>${g.round}/${g.maxRounds}</b></span><span>Points — You+North <b>${g.teamPts[0]}</b> · West+East <b>${g.teamPts[1]}</b></span><span>Game <b>${fmt(g.game[0])} : ${fmt(g.game[1])}</b></span>`;
   let actions='';
-  if(g.mode==='cb'&&g.phase==='bid'&&g.bidTurn===0){const est=estimateTricks(g.hands[0]);
+  if(!g.dealing&&g.mode==='cb'&&g.phase==='bid'&&g.bidTurn===0&&g.bids[0]===null){const est=estimateTricks(g.hands[0]);
     actions=`${[1,2,3,4,5,6,7,8].map(n=>`<button class="${n===est?'primary':'btn'}" data-bid="${n}">${n}</button>`).join('')}<div class="hint">Your call: how many tricks will you win? Suggested: <b>${est}</b> (Aces, Kings with company, extra spades).</div>`;}
-  if(g.mode==='29'&&g.phase==='bid'&&g.auction.turn===0&&!g.auction.passed[0]){const a=g.auction,nx=Math.max(16,a.high+1),mx=botMax29(g.hands[0]);
+  if(!g.dealing&&g.mode==='29'&&g.phase==='bid'&&g.auction.turn===0&&!g.auction.passed[0]&&g.auction.holder!==0){const a=g.auction,nx=Math.max(16,a.high+1),mx=botMax29(g.hands[0]);
     const opts=[];for(let v=nx;v<=Math.min(28,nx+3);v++)opts.push(v);
     actions=`${opts.map(v=>`<button class="btn" data-b29="${v}">Bid ${v}</button>`).join('')}<button class="btn" data-b29="pass">Pass</button>
       <div class="hint">${a.holder!==null?`Highest bid: ${a.high} by ${SEATN[a.holder]}. `:''}${mx>=nx?`Your 4 cards look good for up to about <b>${mx}</b>.`:'Your 4 cards look weak — passing is sensible.'} Strong hands have the J or 9 with other cards of the same suit.</div>`;}
-  if(g.mode==='29'&&g.phase==='trump'&&g.bidder===0)actions=`${SUITS.map(s=>`<button class="btn" data-tr="${s}"><span class="${isRed(s)?'redt':''}">${SYM[s]}</span> ${SNAME[s]}</button>`).join('')}<div class="hint">Suggested: ${SYM[bestSuit29(g.hands[0])]} — your strongest suit among these 4 cards.</div>`;
+  if(g.mode==='29'&&g.phase==='trump'&&g.bidder===0&&!g.trump)actions=`${SUITS.map(s=>`<button class="btn" data-tr="${s}"><span class="${isRed(s)?'redt':''}">${SYM[s]}</span> ${SNAME[s]}</button>`).join('')}<div class="hint">Suggested: ${SYM[bestSuit29(g.hands[0])]} — your strongest suit among these 4 cards.</div>`;
   if(canReveal())actions=`<button class="primary" id="reveal">Reveal trump</button><div class="hint">You have no ${SNAME[g.trick[0].c.s]}. Reveal trump (then you must play one if you have it), or just discard any card.</div>`;
   const trick=g.trick.map((t,i)=>`<div class="slot slot${t.p} ${g.winSlot===t.p?'win'+(t.p===0||(g.mode==='29'&&t.p===2)?' mine':''):''} ${i===0?'lead':''}">${cardHTML(t.c)}</div>`).join('');
   const hand=g.hands[0].map((c,i)=>cardHTML(c,{attr:`data-c="${i}"`,cls:(myTurn?(L.includes(c)?'ok':'no'):'')+(g.shakeIdx===i?' shake':'')})).join('');
@@ -988,14 +996,16 @@ function renderTable(){const g=G;if(!g)return;
     <div class="board">${seat(2)}${seat(1)}<div class="center">${trick}</div>${seat(3)}</div>
     <div class="status"><div class="msg ${g.warn?'warn':''}">${g.msg||(myTurn?(g.trick.length?'Your turn — play a glowing card.':'Your lead — play any card.'):'&nbsp;')}</div>
     <div class="explainbar">${g.explain}</div></div>
-    <div class="actions">${actions}</div>
+    <div class="actions ${g.phase==='play'?'inplay':''}">${actions}</div>
     <div class="mine"><div class="youbar">${seat(0)}</div>
     <div class="hand" style="--n:${g.hands[0].length}">${hand}</div></div></div>
     ${g.phase==='summary'?`<div class="overlay"><div class="modal">${g.summary}<div class="actions">${g.summaryDone?`${cur.id<LEVELS.length?'<button class="primary" id="nxl">Next level →</button>':''}<button class="btn" id="again">Play again</button><button class="btn" data-act="home">All levels</button>`:`<button class="primary" id="nr">Next ${g.mode==='29'?'deal':'round'} →</button>`}</div></div></div>`:''}
     ${g.showRules?`<div class="overlay"><div class="modal lesson"><h2>${cur.title}</h2>${cur.lesson()}<button class="primary" id="closer">Back to the table</button></div></div>`:''}`;
-  if(g.summaryDone)clearSave();else if(myTurn||actions||g.phase==='summary')saveGame();
+  if(g.summaryDone)clearSave();else if(!g.dealing&&(myTurn||actions||g.phase==='summary'))saveGame();
+  { const rm=app.querySelector('.modal.lesson'); if(rm&&renderTable._rs)rm.scrollTop=renderTable._rs; }
   bindCommon();
-  app.querySelectorAll('[data-c]').forEach(e=>e.onclick=()=>humanPlay(+e.dataset.c));
+  app.querySelectorAll('[data-c]').forEach(e=>{e.onclick=()=>humanPlay(+e.dataset.c);if(e.classList.contains('ok')){e.tabIndex=0;e.setAttribute('role','button');e.onkeydown=ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();renderTable._focus=+e.dataset.c;humanPlay(+e.dataset.c);}};}});
+  if(renderTable._focus!=null){const f=app.querySelector('.hand [tabindex="0"]');if(f)f.focus({preventScroll:true});renderTable._focus=null;}
   app.querySelectorAll('[data-bid]').forEach(e=>e.onclick=()=>humanBidCB(+e.dataset.bid));
   app.querySelectorAll('[data-b29]').forEach(e=>e.onclick=()=>humanBid29(e.dataset.b29==='pass'?'pass':+e.dataset.b29));
   app.querySelectorAll('[data-tr]').forEach(e=>e.onclick=()=>humanTrump(e.dataset.tr));

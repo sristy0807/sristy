@@ -180,7 +180,7 @@ body.scr-table #app{height:100dvh;padding-top:max(env(safe-area-inset-top),8px)}
   .me{flex-direction:row;align-items:flex-end;gap:10px}.me .meinfo{flex-direction:column;margin-bottom:8px}.me .hand{flex:1;padding-top:16px}
   .status{min-height:20px;font-size:14px}.actions{min-height:44px}
   .pile.draw .lbl{display:none}
-  .tbl{position:relative}.actions{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(var(--cw)*1.5 + 30px);z-index:6;min-height:0}
+  .tbl{position:relative}.actions{position:absolute;right:10px;left:auto;transform:none;top:40%;z-index:6;min-height:0}
   .curcol{display:none}.ring{inset:calc(var(--cw)*-.16)}.dir{inset:calc(var(--cw)*-.36)}
   .status::before{content:"";display:inline-block;width:.8em;height:.8em;border-radius:50%;background:var(--cur);border:2px solid #fff;margin-right:6px;vertical-align:-1px}
 }
@@ -208,7 +208,8 @@ function newDeck(){const d=[];for(const c of COLS){d.push({c,v:'0',id:++cid});fo
   for(let k=0;k<4;k++){d.push({c:'K',v:'W',id:++cid});d.push({c:'K',v:'W4',id:++cid});}return shuffle(d);}
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 const isWild=c=>c.c==='K';
-const pts=c=>/\d/.test(c.v)?+c.v:isWild(c)?50:20;
+const isNum=v=>/^\d$/.test(v);
+const pts=c=>isNum(c.v)?+c.v:isWild(c)?50:20;
 const VNAME={S:'Skip',Rv:'Reverse',D2:'Draw Two',W:'Wild',W4:'Wild Draw Four'};
 const cardName=c=>isWild(c)?VNAME[c.v]:`${CNAME[c.c]} ${VNAME[c.v]||c.v}`;
 const ICON={S:'<svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 3.2a6.8 6.8 0 0 1 5.4 10.9L7.9 6.6A6.8 6.8 0 0 1 12 5.2zM6.6 7.9l9.5 9.5A6.8 6.8 0 0 1 6.6 7.9z"/></svg>',
@@ -231,10 +232,10 @@ function drawCards(g,p,k){const got=[];for(let i=0;i<k;i++){if(!g.deck.length){c
   if(!g.deck.length)break;const c=g.deck.pop();g.hands[p].push(c);got.push(c);}
   if(g.saidLast)g.saidLast[p]=false;return got;}
 function newRoundState(g){g.deck=newDeck();g.hands=Array.from({length:g.n},()=>[]);for(let r=0;r<7;r++)for(let p=0;p<g.n;p++)g.hands[p].push(g.deck.pop());
-  let first;do{first=g.deck.pop();if(!/\d/.test(first.v)){g.deck.unshift(first);first=null;}}while(!first);
+  let first;do{first=g.deck.pop();if(!isNum(first.v)){g.deck.unshift(first);first=null;}}while(!first);
   g.discard=[first];g.color=first.c;g.dir=1;g.pending=0;g.turn=(g.dealer+1)%g.n;g.saidLast=Array(g.n).fill(false);g.catchable=-1;g.drewThisTurn=null;g.phase='play';g.round=(g.round||0)+1;
   sortHand(g);}
-function sortHand(g){const order={R:0,Y:1,G:2,B:3,K:4},vo=v=>/\d/.test(v)?+v:{S:10,Rv:11,D2:12,W:13,W4:14}[v];g.hands[0].sort((a,b)=>order[a.c]-order[b.c]||vo(a.v)-vo(b.v));}
+function sortHand(g){const order={R:0,Y:1,G:2,B:3,K:4},vo=v=>isNum(v)?+v:{S:10,Rv:11,D2:12,W:13,W4:14}[v];g.hands[0].sort((a,b)=>order[a.c]-order[b.c]||vo(a.v)-vo(b.v));}
 
 /* ---------- bots ---------- */
 function botChoose(g,p){const opts=playable(g,p);if(!opts.length)return null;const d=g.diff,hand=g.hands[p];
@@ -256,7 +257,7 @@ let progress=store.get({unlocked:1,stars:{},sound:true,music:true,stack:false,dr
 function complete(id,stars){progress.stars[id]=Math.max(progress.stars[id]||0,stars);progress.unlocked=Math.max(progress.unlocked,Math.min(LEVELS.length,id+1));store.set(progress);}
 function setSkill(k){progress.skill=k;if(k==='pro')progress.unlocked=LEVELS.length;store.set(progress);}
 const totalStars=()=>Object.values(progress.stars).reduce((a,b)=>a+b,0);
-function saveGame(){if(!G||G.phase==='over'||G.phase==='summary')return;try{localStorage.setItem(SAVE_KEY,JSON.stringify({...G,id:0,anim:null,newIds:[]}));}catch(e){}}
+function saveGame(){if(!G||G.phase==='over')return;try{localStorage.setItem(SAVE_KEY,JSON.stringify({...G,id:0,anim:null,newIds:[]}));}catch(e){}}
 function loadSave(){try{const v=JSON.parse(localStorage.getItem(SAVE_KEY));return v&&v.hands?v:null;}catch(e){return null;}}
 function clearSave(){try{localStorage.removeItem(SAVE_KEY);}catch(e){}}
 function recordResult(won){const s=progress.stats.rounds=progress.stats.rounds||{played:0,won:0};s.played++;if(won)s.won++;store.set(progress);}
@@ -371,7 +372,7 @@ function Jukebox(cfg){
 function nowPlaying(title,onSkip){let el=document.getElementById('np');if(!el){el=document.createElement('div');el.id='np';el.setAttribute('role','status');document.body.appendChild(el);}
   el.innerHTML=`<span class="np-ic" aria-hidden="true">♪</span><span class="np-t"><small>Now playing</small>${title}</span><button type="button" class="np-skip" aria-label="Next track">Skip ⏭︎</button>`;
   el.querySelector('.np-skip').onclick=e=>{e.stopPropagation();onSkip();};
-  el.classList.remove('np-hide');el.classList.add('np-show');clearTimeout(el._t);el._t=setTimeout(()=>{el.classList.remove('np-show');el.classList.add('np-hide');},5200);}
+  el.classList.remove('np-hide');el.classList.add('np-show');clearTimeout(el._t);el._t=setTimeout(()=>{el.classList.remove('np-show');el.classList.add('np-hide');},3800);}
 const TRACKS_LAST=[
  {title:'Wild Draw Groove',bpm:112,swing:.08,key:52,scale:'dorian',prog:[[0,'m7'],[5,'7'],[0,'m7'],[5,'7'],[-4,'maj7'],[-5,'7'],[0,'m7'],[0,'m7']],chord:'keys',chordPat:'..x...x...x..x..',
   bass:'synthbass',bassPat:'x..x..x.x.8..x.5',lead:'lead',mel:{density:.55,rhythm:'busy'},drums:{k:'x.....x...x.....',c:'....x.......x...',h:'xxxxxxxxxxxxxxxx'}},
@@ -455,13 +456,14 @@ function renderModal(){const old=document.getElementById('ov');if(old)old.remove
   on('startq',()=>startGame({n:progress.opps+1,diff:progress.diff,target:progress.len==='200'?200:0}));
   ov.querySelectorAll('[data-col]').forEach(b=>b.onclick=()=>{const f=modalData.done;modal=null;f(b.dataset.col);});
   if(modal==='result'&&modalData.bind)modalData.bind(ov);
-  const first=ov.querySelector('button');if(first)first.focus({preventScroll:true});}
+  const first=ov.querySelector(renderModal._last===modal&&renderModal._f?`[data-k="${renderModal._f}"],#${renderModal._f}`:'button')||ov.querySelector('button');renderModal._last=modal;if(first)first.focus({preventScroll:true});
+  ov.addEventListener('focusin',e=>{renderModal._f=e.target.dataset.k||e.target.id||'';});}
 
 /* ---------- menu, lessons ---------- */
 function renderHome(){G=null;const sv=loadSave(),pro=progress.skill==='pro',started=totalStars()>0,done=Object.keys(progress.stars).length;
   const open=LEVELS.filter(l=>l.id<=progress.unlocked),nx=open.find(l=>!progress.stars[l.id])||open[open.length-1],free=pro||progress.unlocked>=LEVELS.length;
   const st=progress.stats.rounds;let primary;
-  if(sv)primary=`<button class="mbtn play" id="resume">Resume<small>${sv.n-1} opponent${sv.n>2?'s':''}<br>${sv.hands[0].length} cards in hand</small></button>`;
+  if(sv)primary=`<button class="mbtn play" id="resume">Resume<small>${sv.n-1} opponent${sv.n>2?'s':''}<br>${sv.phase==='summary'?`Next round, ${sv.scores[0]} / ${sv.target} pts`:`${sv.hands[0].length} card${sv.hands[0].length===1?'':'s'} in hand`}</small></button>`;
   else if(pro)primary=`<button class="mbtn play js-new">Play<small>${st&&st.played?`Won ${st.won} of ${st.played}`:'vs bots'}</small></button>`;
   else primary=`<button class="mbtn play" id="cont">${started?'Continue':'Start'}<small>Lesson ${nx.id}<br>${esc(nx.title)}</small></button>`;
   const fan=[C('R','7'),C('Y','S'),C('K','W4'),C('G','Rv'),C('B','D2')];
@@ -470,7 +472,7 @@ function renderHome(){G=null;const sv=loadSave(),pro=progress.skill==='pro',star
       <h1 class="logo">Last <span>Card</span></h1><p class="tag"><span class="bn">শেষ তাস</span>Match colours, play action cards, empty your hand first</p></div>
       <div class="menubtns">${primary}
         <div class="quick"><button class="mbtn" data-quick="4" ${free?'':'disabled'}>Full table<small>${free?'3 bots':'🔒 After the lessons'}</small></button><button class="mbtn" data-quick="2" ${free?'':'disabled'}>Duel<small>${free?'1 bot':'🔒 After the lessons'}</small></button></div>
-        <button class="mbtn" id="lv">Lessons<small>${done} of ${LEVELS.length} done</small></button>${free&&!pro&&!sv?'':''}</div></div></div>`;
+        <button class="mbtn" id="lv">Lessons<small>${done} of ${LEVELS.length} done</small></button>${free&&(sv||!pro)?'<button class="mbtn js-new">New game<small>Choose bots and length</small></button>':''}</div></div></div>`;
   bindCommon();const on=(id,f)=>{const e=document.getElementById(id);if(e)e.onclick=f;};
   on('resume',resumeGame);on('cont',()=>openLevel(nx.id));on('lv',()=>go('levels'));
   app.querySelectorAll('.js-new').forEach(b=>b.onclick=()=>{modal='newgame';render();});
@@ -485,7 +487,7 @@ function renderLevels(){const groups=[...new Set(LEVELS.map(l=>l.group))],open=L
 function openLevel(id){cur=LEVELS[id-1];go('lesson');}
 function renderLesson(){app.innerHTML=`${topbar(`Lesson ${cur.id}`)}<div class="lesson panel"><h2>${esc(cur.title)}</h2>${cur.lesson()}<div class="actions"><button class="primary" id="go">${cur.type==='game'?'Deal the cards':'Start'}</button></div></div>`;
   bindCommon();document.getElementById('go').onclick=startLevel;}
-function startLevel(){if(cur.type==='game')return startGame({n:cur.n,diff:cur.diff,target:0,lvl:cur.id});Q={i:0,ok:0,hist:[],q:genQ()};go('quiz');}
+function startLevel(){if(cur.type==='game')return startGame({n:cur.n,diff:cur.diff,target:0,lvl:cur.id});Q={i:0,ok:0,hist:[],used:[]};Q.q=genQ();go('quiz');}
 /* ---------- quizzes ---------- */
 const rc=()=>pick(COLS),rn=()=>String(Math.floor(Math.random()*10));
 function genQ(){
@@ -523,68 +525,70 @@ function renderQuizResult(){const pass=Q.ok>=cur.pass,stars=Q.ok===cur.n?3:Q.ok>
   bindCommon();const on=(id,f)=>{const e=document.getElementById(id);if(e)e.onclick=f;};on('nx',()=>openLevel(cur.id+1));on('ag',startLevel);}
 
 /* ---------- the table ---------- */
+function wait(g,fn,ms){g.wait=true;const t=g.tick;later(()=>{if(G.tick===t)fn();},ms);}
 function later(fn,ms){const id=G&&G.id;setTimeout(()=>{if(G&&G.id===id&&screen==='table')fn();},ms);}
-function startGame(o){clearSave();modal=null;G={id:++gid,n:o.n,diff:o.diff,target:o.target||0,lvl:o.lvl||null,scores:Array(o.n).fill(0),dealer:Math.floor(Math.random()*o.n),round:0,stack:progress.stack,drawUntil:progress.drawUntil,msg:'',say:{},newIds:[]};
-  if(o.lvl)cur=LEVELS[o.lvl-1];newRoundState(G);G.msg=G.turn===0?'You start. Play a glowing card.':`${NAMES[G.turn]} starts.`;go('table');runTurn();}
-function resumeGame(){const sv=loadSave();if(!sv)return;G={...sv,id:++gid,newIds:[]};if(G.lvl)cur=LEVELS[G.lvl-1];if(G.phase==='color'&&G.turn!==0)G.phase='play';go('table');if(G.awaitCall)G.awaitCall=false;runTurn();}
+function startGame(o){if(!o.force&&screen!=='table'&&loadSave()){modalData={html:`<h2>Start a new game?</h2><p class="muted">You have a game in progress. Starting a new one replaces it.</p><div class="row"><button class="primary" id="cnew">Start new game</button><button class="btn" id="cres">Resume instead</button></div>`,bind:ov=>{ov.querySelector('#cnew').onclick=()=>startGame({...o,force:true});ov.querySelector('#cres').onclick=()=>{modal=null;resumeGame();};}};modal='result';render();return;}
+  clearSave();modal=null;G={id:++gid,n:o.n,diff:o.diff,target:o.target||0,lvl:o.lvl||null,scores:Array(o.n).fill(0),dealer:Math.floor(Math.random()*o.n),round:0,stack:progress.stack,drawUntil:progress.drawUntil,msg:'',say:{},newIds:[]};
+  if(o.lvl)cur=LEVELS[o.lvl-1];newRoundState(G);G.msg=G.turn===0?'You start. Play a glowing card.':`${NAMES[G.turn]} starts.`;saveGame();go('table');runTurn();}
+function resumeGame(){const sv=loadSave();if(!sv)return;G={...sv,id:++gid,newIds:[],wait:false};if(G.phase==='summary'){G.dealer=(G.dealer+1)%G.n;newRoundState(G);G.phase='play';G.msg=G.turn===0?'Your turn.':`${NAMES[G.turn]} starts.`;}if(G.lvl)cur=LEVELS[G.lvl-1];if(G.phase==='color'&&G.turn!==0)G.phase='play';go('table');if(G.awaitCall)G.awaitCall=false;runTurn();}
 function runTurn(){const g=G;if(g.phase!=='play')return;
-  if(g.pending>0&&!playable(g,g.turn).length){const k=g.pending;g.pending=0;drawCards(g,g.turn,k);sortHand(g);g.msg=`${NAMES[g.turn]} ${g.turn?'picks':'pick'} up ${k}.`;sfx.draw();render();later(()=>{advance(1);},700);return;}
-  if(g.turn===0){g.drewThisTurn=null;saveGame();render();return;}
-  render();later(botTurn,g.diff===1?900:750);}
-function botTurn(){const g=G,p=g.turn;let c=botChoose(g,p);
+  if(g.pending>0&&!playable(g,g.turn).length){const k=g.pending;g.pending=0;g.catchable=-1;drawCards(g,g.turn,k);sortHand(g);g.msg=`${NAMES[g.turn]} ${g.turn?'picks':'pick'} up ${k}.`;sfx.draw();g.wait=true;render();wait(g,()=>advance(1),700);return;}
+  if(g.turn===0){g.drewThisTurn=null;g.wait=false;saveGame();render();return;}
+  g.wait=false;saveGame();g.wait=true;render();const t=g.tick;later(()=>{if(G.tick===t)botTurn();},g.diff===1?900:750);}
+function botTurn(){const g=G,p=g.turn;if(p===0||g.phase!=='play')return;let c=botChoose(g,p);
   if(!c){g.catchable=-1;const got=drawCards(g,p,1);sfx.draw();let drawn=got[0];
-    if(g.drawUntil)while(drawn&&!canPlay(drawn,g)){drawn=drawCards(g,p,1)[0];}
-    g.msg=`${NAMES[p]} draws${g.drawUntil&&g.hands[p].length>1?'':' a card'}.`;
-    if(drawn&&canPlay(drawn,g)){render();later(()=>playCard(p,drawn,isWild(drawn)?botColor(g,p):null),650);return;}
-    render();later(()=>advance(1),600);return;}
+    let n=got.length;if(g.drawUntil)while(drawn&&!canPlay(drawn,g)){drawn=drawCards(g,p,1)[0];if(drawn)n++;}
+    g.msg=`${NAMES[p]} draws ${n===1?'a card':n+' cards'}.`;
+    if(drawn&&canPlay(drawn,g)){g.wait=true;render();wait(g,()=>playCard(p,drawn,isWild(drawn)?botColor(g,p):null),650);return;}
+    g.wait=true;render();wait(g,()=>advance(1),600);return;}
   playCard(p,c,isWild(c)?botColor(g,p):null);}
 function playCard(p,card,color){const g=G,h=g.hands[p],i=h.findIndex(c=>c.id===card.id);if(i<0)return;h.splice(i,1);g.discard.push(card);
   g.color=isWild(card)?color:card.c;g.catchable=-1;g.say={};let steps=1,txt=`${NAMES[p]} ${p?'plays':'play'} ${cardName(card)}${isWild(card)?`, ${CNAME[g.color]}`:''}.`;
   if(card.v==='S'){steps=2;txt+=` ${NAMES[nextP(g,p)]} ${nextP(g,p)?'is':'are'} skipped.`;}
-  if(card.v==='Rv'){if(g.n===2)steps=2;else{g.dir*=-1;}txt+=g.n===2?' Go again.':' Direction flips.';}
+  if(card.v==='Rv'){if(g.n===2)steps=2;else{g.dir*=-1;}txt+=g.n===2?(p?` ${NAMES[p]} goes again.`:' Go again.'):' Direction flips.';}
   if(card.v==='D2'||card.v==='W4'){const k=card.v==='D2'?2:4;
     if(g.stack){g.pending+=k;}else{const v=nextP(g,p);drawCards(g,v,k);if(v===0)sortHand(g);steps=2;txt+=` ${NAMES[v]} ${v?'picks':'pick'} up ${k}.`;}}
-  /\d/.test(card.v)?sfx.play():sfx.action();g.msg=txt;g.lastPlayer=p;
-  if(!h.length)return endRound(p);
-  if(h.length===1){if(p===0){g.awaitCall=true;g.callSteps=steps;render();later(()=>{if(G.awaitCall){G.awaitCall=false;drawCards(G,0,2);sortHand(G);G.msg='You forgot to say Last card! Pick up 2.';sfx.bad();render();later(()=>advance(G.callSteps),900);}},3200);return;}
+  isNum(card.v)?sfx.play():sfx.action();g.msg=txt;g.lastPlayer=p;
+  if(!h.length){if(g.pending>0){const v=nextP(g,p);drawCards(g,v,g.pending);g.pending=0;}return endRound(p);}
+  if(h.length===1){if(p===0){g.awaitCall=true;g.wait=true;g.callSteps=steps;render();const t=g.tick;later(()=>{if(G.tick===t&&G.awaitCall){G.awaitCall=false;drawCards(G,0,2);sortHand(G);G.msg='You forgot to say Last card! Pick up 2.';sfx.bad();advance(G.callSteps);}},3200);return;}
     if(Math.random()<sayChance(g)){g.saidLast[p]=true;g.say[p]='Last card!';sfx.last();}else{g.catchable=p;}}
-  render();later(()=>advance(steps),p===0?500:650);}
-function advance(steps){const g=G;g.turn=nextP(g,g.turn,steps);g.drewThisTurn=null;
+  g.wait=true;render();wait(g,()=>advance(steps),p===0?500:650);}
+function advance(steps){const g=G;g.tick=(g.tick||0)+1;g.wait=false;g.turn=nextP(g,g.turn,steps);g.drewThisTurn=null;
   if(g.catchable>=0&&g.catchable!==g.lastPlayer)g.catchable=-1;
   runTurn();}
-function humanPlay(id){const g=G;if(g.turn!==0||g.phase!=='play'||g.awaitCall)return;const c=g.hands[0].find(x=>x.id===id);if(!c||!canPlay(c,g))return sfx.bad();
+function humanPlay(id){const g=G;if(g.turn!==0||g.phase!=='play'||g.awaitCall||g.wait)return;const c=g.hands[0].find(x=>x.id===id);if(!c||!canPlay(c,g)||(g.drewThisTurn&&c.id!==g.drewThisTurn))return sfx.bad();
   if(isWild(c)){g.phase='color';modalData={done:col=>{G.phase='play';playCard(0,c,col);}};modal='color';render();return;}
   playCard(0,c,null);}
-function humanDraw(){const g=G;if(g.turn!==0||g.phase!=='play'||g.drewThisTurn||g.awaitCall)return;g.catchable=-1;
-  if(g.pending>0){const k=g.pending;g.pending=0;drawCards(g,0,k);sortHand(g);sfx.draw();g.msg=`You pick up ${k}.`;render();later(()=>advance(1),800);return;}
-  let got=drawCards(g,0,1);if(g.drawUntil)while(got[0]&&!canPlay(got[got.length-1],g)){got=got.concat(drawCards(g,0,1));}
+function humanDraw(){const g=G;if(g.turn!==0||g.phase!=='play'||g.drewThisTurn||g.awaitCall||g.wait)return;g.catchable=-1;
+  if(g.pending>0){const k=g.pending;g.pending=0;drawCards(g,0,k);sortHand(g);sfx.draw();g.msg=`You pick up ${k}.`;g.wait=true;render();wait(g,()=>advance(1),800);return;}
+  let got=drawCards(g,0,1);if(g.drawUntil)while(got.length&&!canPlay(got[got.length-1],g)){const more=drawCards(g,0,1);if(!more.length)break;got=got.concat(more);}
   sortHand(g);sfx.draw();g.newIds=got.map(c=>c.id);const last=got[got.length-1];
   if(last&&canPlay(last,g)){g.drewThisTurn=last.id;g.msg=got.length>1?`You drew ${got.length} cards. Play the last one, or keep it.`:'You drew a playable card. Play it, or keep it.';render();}
-  else{g.msg=`You drew ${got.length>1?got.length+' cards':'a card'}. Your turn passes.`;render();later(()=>advance(1),800);}}
-function humanPass(){if(G.turn!==0||!G.drewThisTurn)return;G.msg='You keep it.';advance(1);}
-function callLast(){if(!G.awaitCall)return;G.awaitCall=false;G.saidLast[0]=true;G.say={0:'Last card!'};sfx.last();G.msg='Last card!';render();later(()=>advance(G.callSteps),600);}
+  else{g.msg=got.length?`You drew ${got.length>1?got.length+' cards':'a card'}. Your turn passes.`:'No cards left to draw. Your turn passes.';g.wait=true;render();wait(g,()=>advance(1),800);}}
+function humanPass(){if(G.turn!==0||!G.drewThisTurn||G.wait)return;G.msg='You keep it.';advance(1);}
+function callLast(){if(!G.awaitCall)return;G.awaitCall=false;G.tick=(G.tick||0)+1;G.saidLast[0]=true;G.say={0:'Last card!'};sfx.last();G.msg='Last card!';G.wait=true;render();wait(G,()=>advance(G.callSteps),600);}
 function catchBot(p){const g=G;if(g.catchable!==p)return;g.catchable=-1;drawCards(g,p,2);g.say[p]='Caught! +2';g.msg=`You caught ${NAMES[p]}! They pick up 2.`;sfx.good();render();}
-function endRound(w){const g=G;const pts_=g.hands.reduce((a,h,i)=>i===w?a:a+h.reduce((s,c)=>s+pts(c),0),0);g.scores[w]+=pts_;g.phase='summary';clearSave();
-  const matchOver=!g.target||g.scores.some(s=>s>=g.target);if(matchOver)g.phase='over';
+function endRound(w){const g=G;g.tick=(g.tick||0)+1;g.wait=false;const pts_=g.hands.reduce((a,h,i)=>i===w?a:a+h.reduce((s,c)=>s+pts(c),0),0);g.scores[w]+=pts_;g.phase='summary';
+  const matchOver=!g.target||g.scores.some(s=>s>=g.target);if(matchOver){g.phase='over';clearSave();}else saveGame();
   recordResult(w===0);
-  let stars=0;if(g.lvl){stars=w===0?3:g.hands[0].length<=3?2:1;complete(g.lvl,stars);}
+  let stars=0;if(g.lvl&&w===0){stars=3;complete(g.lvl,stars);}
   w===0?sfx.win():sfx.lose();
   const rows=g.hands.map((h,i)=>`<tr><td>${NAMES[i]}${i===w?' 🏆︎':''}</td><td>${h.length} card${h.length===1?'':'s'}</td>${g.target?`<td>${g.scores[i]}</td>`:''}</tr>`).join('');
   const head=w===0?(matchOver&&g.target?'You win the match!':'You win!'):`${NAMES[w]} wins${matchOver&&g.target?' the match':''}`;
-  modalData={html:`<h2 class="center">${head}</h2>${stars?`<div class="bigstars">${'★'.repeat(stars)}${'☆'.repeat(3-stars)}</div>`:''}<div class="score"><p class="center">${NAMES[w]} ${w?'scores':'score'} ${pts_} points from the cards left.</p><table><tr><th>Player</th><th>Left</th>${g.target?`<th>Total / ${g.target}</th>`:''}</tr>${rows}</table></div>
-    <div class="row" style="justify-content:center">${!matchOver?'<button class="primary" id="nr">Next round</button>':`${g.lvl&&g.lvl<LEVELS.length?'<button class="primary" id="nl">Next lesson</button>':''}<button class="${g.lvl&&g.lvl<LEVELS.length?'btn':'primary'}" id="pa">Play again</button>`}<button class="btn" id="tm">Menu</button></div>`,
+  modalData={html:`<h2 class="center">${head}</h2>${stars?`<div class="bigstars">${'★'.repeat(stars)}${'☆'.repeat(3-stars)}</div>`:''}<div class="score"><p class="center">${NAMES[w]} ${w?'scores':'score'} ${pts_} points from the cards left.${g.lvl&&w!==0?' Win the round to pass this lesson.':''}</p><table><tr><th>Player</th><th>Left</th>${g.target?`<th>Total / ${g.target}</th>`:''}</tr>${rows}</table></div>
+    <div class="row" style="justify-content:center">${!matchOver?'<button class="primary" id="nr">Next round</button>':`${g.lvl&&w===0&&g.lvl<LEVELS.length?'<button class="primary" id="nl">Next lesson</button>':''}<button class="${g.lvl&&w===0&&g.lvl<LEVELS.length?'btn':'primary'}" id="pa">${g.lvl&&w!==0?'Try again':'Play again'}</button>`}<button class="btn" id="tm">Menu</button></div>`,
     bind:ov=>{const on=(id,f)=>{const e=ov.querySelector('#'+id);if(e)e.onclick=f;};
-      on('nr',()=>{modal=null;G.dealer=(G.dealer+1)%G.n;newRoundState(G);G.phase='play';G.msg=G.turn===0?'Your turn.':`${NAMES[G.turn]} starts.`;render();runTurn();});
+      on('nr',()=>{modal=null;G.dealer=(G.dealer+1)%G.n;newRoundState(G);G.phase='play';G.msg=G.turn===0?'Your turn.':`${NAMES[G.turn]} starts.`;saveGame();render();runTurn();});
       on('pa',()=>startGame({n:G.n,diff:G.diff,target:G.target,lvl:G.lvl}));on('nl',()=>openLevel(G.lvl+1));on('tm',()=>{G=null;go('home');});}};
   render();setTimeout(()=>{if(G===g){modal='result';renderModal();}},900);}
 const DIR_SVG='<svg viewBox="0 0 100 100" fill="none" stroke="#fff" stroke-width="3"><path d="M50 6a44 44 0 0 1 44 44"/><path d="M90 40l4 10 6-9"/><path d="M50 94A44 44 0 0 1 6 50"/><path d="M10 60 6 50 0 59"/></svg>';
-function renderTable(){const g=G;if(!g)return;const top=g.discard[g.discard.length-1],myTurn=g.turn===0&&g.phase==='play'&&!g.awaitCall;
+function renderTable(){const g=G;if(!g)return;const top=g.discard[g.discard.length-1],myTurn=g.turn===0&&g.phase==='play'&&!g.awaitCall&&!g.wait;
   document.documentElement.style.setProperty('--cur',`var(--${g.color})`);
   const oppOrder=g.n===2?[1]:g.n===3?[1,2]:[1,2,3];
   const opp=p=>{const k=g.hands[p].length;return `<div class="opp ${g.turn===p&&g.phase==='play'?'turn':''}"><div class="nm">${NAMES[p]} <span class="cnt">${k}</span></div>
     <div class="backs">${Array.from({length:Math.min(k,8)},()=>cardHTML(null,{back:true})).join('')}</div>
     ${g.say[p]?`<div class="say">${g.say[p]}</div>`:''}${g.catchable===p?`<button class="btn" data-catch="${p}" style="background:var(--Y);color:#1b1b1b;border-color:#1b1b1b;min-height:36px">Catch!</button>`:''}${g.target?`<div style="font-size:13px;font-weight:800">${g.scores[p]} pts</div>`:''}</div>`;};
-  const hand=g.hands[0].map(c=>cardHTML(c,{button:true,attr:`data-id="${c.id}"`,cls:(myTurn?(canPlay(c,g)?'ok':'no'):'')+(g.newIds.includes(c.id)?' new':'')})).join('');
+  const hand=g.hands[0].map(c=>cardHTML(c,{button:true,attr:`data-id="${c.id}"`,cls:(myTurn?(canPlay(c,g)&&(!g.drewThisTurn||c.id===g.drewThisTurn)?'ok':'no'):'')+(g.newIds.includes(c.id)?' new':'')})).join('');
   const canDraw=myTurn&&!g.drewThisTurn;
   let acts='';if(g.awaitCall)acts=`<button class="lastbtn" id="last">Last card!</button>`;else if(myTurn&&g.drewThisTurn)acts=`<button class="btn" id="pass">Keep it and pass</button>`;
   const sub=g.target?` · ${g.scores[0]} / ${g.target} pts`:'';
@@ -596,7 +600,7 @@ function renderTable(){const g=G;if(!g)return;const top=g.discard[g.discard.leng
     </div><div class="curcol">Colour: ${CNAME[g.color]}${g.pending?` · +${g.pending} waiting`:''}</div></div>
     <div class="status" aria-live="polite">${esc(g.msg)}</div>
     <div class="actions">${acts}</div>
-    <div class="me ${myTurn?'turn':''}"><div class="meinfo"><span class="nm">You</span><span style="font:800 14px var(--body)">${g.hands[0].length} cards${sub}</span>${g.say[0]?`<span class="say" style="font:400 15px var(--disp);background:var(--Y);color:#1b1b1b;border-radius:999px;padding:0 10px">${g.say[0]}</span>`:''}</div>
+    <div class="me ${myTurn?'turn':''}"><div class="meinfo"><span class="nm">You</span><span style="font:800 14px var(--body)">${g.hands[0].length} card${g.hands[0].length===1?'':'s'}${sub}</span>${g.say[0]?`<span class="say" style="font:400 15px var(--disp);background:var(--Y);color:#1b1b1b;border-radius:999px;padding:0 10px">${g.say[0]}</span>`:''}</div>
       <div class="hand" style="--n:${g.hands[0].length}">${hand}</div></div></div>`;
   g.newIds=[];bindCommon();
   const on=(id,f)=>{const e=document.getElementById(id);if(e)e.onclick=f;};
