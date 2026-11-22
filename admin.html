@@ -15,7 +15,8 @@
   .bar { position: sticky; top: 0; z-index: 5; background: var(--paper); border-bottom: 2px solid var(--ink); }
   .bar .in { max-width: 920px; margin: 0 auto; padding: .75rem 1.25rem; display: flex; gap: .75rem; align-items: center; flex-wrap: wrap; }
   .bar h1 { font-size: 1.3rem; margin: 0; flex: 1; font-variation-settings: "wdth" 80; }
-  .tabs { display: flex; gap: .25rem; overflow-x: auto; padding: .75rem 0 0; }
+  .tabs { display: flex; gap: .25rem; overflow-x: auto; padding: .75rem 0 0; scrollbar-width: none; -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent); mask-image: linear-gradient(90deg, #000 85%, transparent); }
+  .tabs button:last-child { margin-right: 2rem; }
   .tabs button { flex: none; border: 2px solid transparent; background: none; font: inherit; font-weight: 600; padding: .5rem .9rem; border-radius: 999px; cursor: pointer; color: var(--ink); min-height: 44px; }
   .tabs button[aria-selected=true] { border-color: var(--ink); background: var(--ink); color: var(--paper); }
   .panel { padding-top: 1.5rem; }
@@ -35,7 +36,7 @@
   .grid3 { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 0 1rem; }
   .row { display: flex; gap: .75rem; flex-wrap: wrap; align-items: center; margin-top: 1.25rem; }
   .savebar { position: fixed; left: 0; right: 0; bottom: 0; background: var(--ink); color: var(--paper); z-index: 6; transform: translateY(110%); transition: transform .2s; }
-  .savebar.show { transform: none; }
+  .savebar { visibility: hidden; } .savebar.show { transform: none; visibility: visible; }
   .savebar .in { max-width: 920px; margin: 0 auto; padding: .75rem 1.25rem; display: flex; gap: 1rem; align-items: center; }
   .savebar span { flex: 1; }
   .savebar .btn { border-color: var(--paper); color: var(--paper); }
@@ -74,16 +75,16 @@
 <div class="wrap">
   <section class="login" id="login">
     <h2>Connect to GitHub</h2>
-    <p class="hint">The dashboard edits your site by saving files to the <b>sristy0807/sristy</b> repo. It needs a GitHub access token. The token stays in this browser and is only sent to GitHub.</p>
+    <p class="hint">The dashboard edits your site by saving files to the <b>sristy0807/sristy</b> repo. It needs a GitHub access token, which is only sent to GitHub.</p>
     <ol>
       <li>Open <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com → Settings → Fine-grained tokens → Generate new token</a>.</li>
-      <li>Name it "Site dashboard". Repository access: <b>Only select repositories</b> → <b>sristy</b>, <b>cardSchool</b>, <b>dhakametaverse</b>.</li>
+      <li>Name it "Site dashboard". Repository access: <b>Only select repositories</b> → <b>sristy</b> only. Set an expiry (90 days is fine).</li>
       <li>Permissions: <b>Contents</b> → Read and write, <b>Actions</b> → Read and write.</li>
       <li>Generate, copy the token and paste it here.</li>
     </ol>
     <label for="token">Access token</label>
     <input id="token" type="password" autocomplete="off" placeholder="github_pat_…">
-    <label style="font-weight:400;display:flex;gap:.5rem;align-items:center"><input type="checkbox" id="remember" checked style="width:auto"> Remember on this device</label>
+    <p class="hint" style="margin-top:.6rem">You stay signed in until you close this tab. The token is never saved on the device, so the games on this site can't read it.</p>
     <div class="row"><button class="btn primary" id="connect">Connect</button></div>
   </section>
 

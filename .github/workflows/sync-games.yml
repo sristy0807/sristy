@@ -25,24 +25,47 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Copy game files
+        id: copy
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          set -e
-          jq -c '.games[]' sync-games.json | while read -r g; do
-            folder=$(echo "$g" | jq -r .folder)
-            repo=$(echo "$g" | jq -r .repo)
-            mkdir -p "games/$folder"
-            for f in $(echo "$g" | jq -r '.files[]'); do
-              echo "↓ $repo/$f → games/$folder/$f"
-              # API (not raw.githubusercontent) so a just-pushed change isn't served from cache
-              curl -fsSL -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github.raw" \
-                "https://api.github.com/repos/$repo/contents/$f?ref=main" -o "games/$folder/$f"
-            done
-          done
+          set -u
+          failed=0
+          tmp="$(mktemp -d)"
+          # one line per file: repo<TAB>folder<TAB>file  (no word-splitting or globbing)
+          jq -r '.games[]? | select(type=="object") | . as $g | ($g.files // ["index.html"])[] | [$g.repo, $g.folder, .] | @tsv' sync-games.json > "$tmp/list" || { echo "::error::sync-games.json is not valid JSON"; exit 1; }
+          while IFS=$'\t' read -r repo folder file; do
+            # only safe names: owner/repo, a single folder name, and a relative file path without ..
+            if ! [[ "$repo" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]] || ! [[ "$folder" =~ ^[A-Za-z0-9_.-]+$ ]] || [[ "$folder" == "." || "$folder" == ".." ]] \
+               || [[ -z "$file" || "$file" == /* || "$file" == *..* || ! "$file" =~ ^[A-Za-z0-9_./-]+$ ]]; then
+              echo "::warning::Skipped unsafe entry: repo='$repo' folder='$folder' file='$file'"; failed=1; continue
+            fi
+            dest="games/$folder/$file"
+            mkdir -p "$(dirname "$dest")"
+            echo "↓ $repo/$file → $dest"
+            # API (not raw.githubusercontent) so a just-pushed change isn't served from cache
+            if curl -fsSL -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github.raw" \
+                 "https://api.github.com/repos/$repo/contents/$file?ref=main" -o "$tmp/dl"; then
+              mv "$tmp/dl" "$dest"
+            else
+              echo "::warning::Could not download $repo/$file — kept the current copy"; failed=1
+            fi
+          done < "$tmp/list"
+          echo "failed=$failed" >> "$GITHUB_OUTPUT"
       - name: Commit if anything changed
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898299+github-actions[bot]@users.noreply.github.com"
           git add games
-          if git diff --cached --quiet; then echo "Games already up to date."; else git commit -m "Sync games from their repos" && git push; fi
+          if git diff --cached --quiet; then echo "Games already up to date."; exit 0; fi
+          git commit -m "Sync games from their repos"
+          for i in 1 2 3; do
+            git push && exit 0
+            echo "Push rejected (main moved). Rebasing and retrying…"; git pull --rebase origin main || exit 1
+          done
+          exit 1
+      - name: Report skipped files
+        if: steps.copy.outputs.failed == '1'
+        run: |
+          echo "::error::Some games could not be synced. See the warnings above."
+          exit 1

@@ -5,9 +5,10 @@ const FILES = { content: 'content.json', games: 'games.json', sync: 'sync-games.
 const TAB_FILES = { profile: ['content'], work: ['content'], games: ['games'], publish: ['sync'] };
 
 let token = '';
-try { token = localStorage.getItem('site-dash-token') || sessionStorage.getItem('site-dash-token') || ''; } catch (e) {}
+try { localStorage.removeItem('site-dash-token'); token = sessionStorage.getItem('site-dash-token') || ''; } catch (e) {}
 const data = {}, sha = {}, saved = {};
 let tab = 'profile', runsTimer = null;
+const coverBust = {};
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -22,7 +23,7 @@ async function gh(path, opts = {}) {
   const r = await fetch(API + path, { ...opts, headers: { Authorization: 'Bearer ' + token, Accept: 'application/vnd.github+json', ...(opts.headers || {}) } });
   if (!r.ok) {
     let m = r.status + ''; try { m = (await r.json()).message || m; } catch (e) {}
-    if (r.status === 401) m = 'GitHub rejected the token. Check it hasn\'t expired.';
+    if (r.status === 401) { m = 'GitHub rejected the token. Check it hasn\'t expired.'; try { sessionStorage.removeItem('site-dash-token'); } catch (e) {} }
     if (r.status === 403 || r.status === 404) m += ' — check the token has access to this repo and the right permissions.';
     throw new Error(m);
   }
@@ -41,8 +42,9 @@ async function putFile(path, b64, message, fileSha) {
   return gh(`/repos/${REPO}/contents/${path}`, { method: 'PUT', body: JSON.stringify({ message, content: b64, branch: BRANCH, ...(fileSha ? { sha: fileSha } : {}) }) });
 }
 async function saveKey(key) {
-  const res = await putFile(FILES[key], textToB64(JSON.stringify(data[key], null, 2) + '\n'), `Dashboard: update ${FILES[key]}`, sha[key]);
-  sha[key] = res.content.sha; saved[key] = JSON.stringify(data[key]);
+  const sent = JSON.stringify(data[key]);
+  const res = await putFile(FILES[key], textToB64(JSON.stringify(JSON.parse(sent), null, 2) + '\n'), `Dashboard: update ${FILES[key]}`, sha[key]);
+  sha[key] = res.content.sha; saved[key] = sent;
 }
 
 const dirtyKeys = () => Object.keys(FILES).filter(k => data[k] && JSON.stringify(data[k]) !== saved[k]);
@@ -60,19 +62,20 @@ function fieldVal(v, kind) { return kind === 'lines' ? (v || []).join('\n') : ki
 function parseVal(v, kind) {
   if (kind === 'lines') return v.split('\n').map(s => s.trim()).filter(Boolean);
   if (kind === 'csv') return v.split(',').map(s => s.trim()).filter(Boolean);
-  if (kind === 'num') return v === '' ? '' : Number(v);
+  if (kind === 'num') { const n = parseInt(String(v).replace(/\D/g, ''), 10); return Number.isFinite(n) ? n : ''; }
   return v;
 }
 const F = (label, bind, kind = '', type = 'input', extra = '') => {
   const [key, ...rest] = bind.split('.'), v = fieldVal(getPath(data[key], rest.join('.')), kind), id = 'f-' + bind.replace(/\W/g, '-');
   return `<label for="${id}">${label}</label>` + (type === 'textarea'
     ? `<textarea id="${id}" data-bind="${bind}" data-kind="${kind}" ${extra}>${esc(v)}</textarea>`
-    : `<input id="${id}" data-bind="${bind}" data-kind="${kind}" value="${esc(v)}" ${kind === 'num' ? 'inputmode="numeric"' : ''} ${extra}>`);
+    : `<input id="${id}" data-bind="${bind}" data-kind="${kind}" value="${esc(v)}" ${kind === 'num' ? 'inputmode="numeric" pattern="[0-9]*" maxlength="4"' : ''} ${extra}>`);
 };
 function bindInputs() {
   $('panel').querySelectorAll('[data-bind]').forEach(el => el.addEventListener('input', () => {
     const [key, ...rest] = el.dataset.bind.split('.');
     setPath(data[key], rest.join('.'), parseVal(el.value, el.dataset.kind));
+    if (/\.(title|label)$/.test(el.dataset.bind)) { const h = el.closest('.item')?.querySelector('.head strong'); if (h && el === el.closest('.item').querySelector('input')) h.textContent = el.value || 'Untitled'; }
     refreshSavebar();
   }));
 }
@@ -88,9 +91,9 @@ function bindLists() {
   $('panel').querySelectorAll('[data-add]').forEach(b => b.onclick = () => {
     const [key, ...rest] = b.dataset.add.split('.');
     getPath(data[key], rest.join('.')).push(JSON.parse(b.dataset.tpl));
-    render(); refreshSavebar();
-    const items = $('panel').querySelectorAll(`[data-listbox="${b.dataset.add}"] .item`);
-    items[items.length - 1]?.querySelector('input,textarea')?.focus();
+    render().then(() => { refreshSavebar();
+      const items = $('panel').querySelectorAll(`[data-listbox="${b.dataset.add}"] .item`);
+      items[items.length - 1]?.querySelector('input,textarea')?.focus(); });
   });
 }
 // Two-tap delete instead of a blocking confirm() dialog.
@@ -134,9 +137,9 @@ const PANELS = {
         ${F('Controls', `games.featured.${i}.controls`)}
         <div class="grid2">${F('Play (folder or URL)', `games.featured.${i}.play`)}${F('Source code URL', `games.featured.${i}.source`)}</div>
         ${F('Cover image path', `games.featured.${i}.thumbnail`)}
-        <div class="row">${x.thumbnail ? `<img class="thumb" src="${esc(x.thumbnail)}" alt="">` : ''}
+        <div class="row">${x.thumbnail ? `<img class="thumb" src="${esc(x.thumbnail)}${coverBust[x.thumbnail] ? '?v=' + coverBust[x.thumbnail] : ''}" alt="">` : ''}
           <label class="btn" style="margin:0;font-weight:600">Upload cover<input type="file" accept="image/*" data-cover="${i}" hidden></label>
-          <small class="hint" style="margin:0">16:10, resized to 1280 px wide JPEG</small></div></div>`).join('')}</div>
+          <small class="hint" style="margin:0">Cropped to 16:10 and saved as JPEG (up to 1280 px wide)</small></div></div>`).join('')}</div>
       <button class="btn" data-add="games.featured" data-tpl='{"title":"","year":${new Date().getFullYear()},"engine":"","description":"","tags":[],"controls":"","play":"","source":"","thumbnail":""}'>Add featured game</button>
       <h3 style="margin-top:2.5rem">Earlier projects</h3>
       <div data-listbox="games.archive">${g.archive.map((x, i) => `<div class="item">${ctrls('games.archive', i, x.title || 'New project')}
@@ -161,14 +164,23 @@ const PANELS = {
 async function ensure(keys) {
   for (const k of keys) if (!data[k]) await load(k);
 }
+let renderSeq = 0;
+function withDefaults() {
+  if (data.content) { data.content.links = data.content.links || []; data.content.work = data.content.work || []; }
+  if (data.games) { data.games.featured = (data.games.featured || []).filter(Boolean); data.games.archive = (data.games.archive || []).filter(Boolean); }
+  if (data.sync) data.sync.games = (data.sync.games || []).filter(Boolean);
+}
 async function render() {
-  clearInterval(runsTimer);
+  clearInterval(runsTimer); const my = ++renderSeq;
   document.querySelectorAll('[data-tab]').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === tab));
-  try { await ensure(TAB_FILES[tab]); } catch (e) { $('panel').innerHTML = `<p class="hint">Couldn't load ${esc(TAB_FILES[tab].map(k => FILES[k]).join(', '))}: ${esc(e.message)}</p>`; return; }
+  if (TAB_FILES[tab].some(k => !data[k])) $('panel').innerHTML = '<p class="hint">Loading…</p>';
+  try { await ensure(TAB_FILES[tab]); } catch (e) { if (my === renderSeq) $('panel').innerHTML = `<p class="hint">Couldn't load ${esc(TAB_FILES[tab].map(k => FILES[k]).join(', '))}: ${esc(e.message)}</p>`; return; }
+  if (my !== renderSeq) return;
+  withDefaults();
   $('panel').innerHTML = PANELS[tab]();
   bindInputs(); bindLists();
   $('panel').querySelectorAll('[data-cover]').forEach(inp => inp.onchange = () => uploadCover(+inp.dataset.cover, inp.files[0]));
-  if (tab === 'publish') { $('syncnow').onclick = syncNow; loadRuns(); runsTimer = setInterval(loadRuns, 8000); }
+  if (tab === 'publish') { $('syncnow').onclick = syncNow; loadRuns(); clearInterval(runsTimer); runsTimer = setInterval(() => { if (!document.hidden && tab === 'publish') loadRuns(); }, 8000); }
 }
 
 // ---------- cover upload ----------
@@ -180,17 +192,19 @@ async function uploadCover(i, file) {
     const img = await createImageBitmap(file);
     const W = Math.min(1280, img.width), H = Math.round(W * 10 / 16);
     const c = Object.assign(document.createElement('canvas'), { width: W, height: H }), x = c.getContext('2d');
+    x.fillStyle = '#ffffff'; x.fillRect(0, 0, W, H);
     const s = Math.max(W / img.width, H / img.height);
     x.drawImage(img, (W - img.width * s) / 2, (H - img.height * s) / 2, img.width * s, img.height * s);
     const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', .85));
     const b64 = bytesToB64(new Uint8Array(await blob.arrayBuffer()));
-    const folder = (g.play && !/^https?:/.test(g.play)) ? g.play.replace(/\/?$/, '/') : `games/${slug(g.title)}/`;
+    const local = g.play && !/^https?:/.test(g.play) ? g.play.replace(/[^/]*\.html?$/i, '').replace(/\/?$/, '/') : '';
+    const folder = local || `games/${slug(g.title) === 'game' ? 'game-' + Date.now().toString(36) : slug(g.title)}/`;
     const path = folder + 'cover.jpg';
     let old; try { old = (await gh(`/repos/${REPO}/contents/${path}?ref=${BRANCH}`)).sha; } catch (e) {}
     toast('Uploading cover…');
     await putFile(path, b64, `Dashboard: cover for ${g.title}`, old);
-    g.thumbnail = path; render(); refreshSavebar();
-    toast('Cover uploaded. Save to show it on the site.');
+    const changed = g.thumbnail !== path; g.thumbnail = path; coverBust[path] = Date.now(); render(); refreshSavebar();
+    toast(changed ? 'Cover uploaded. Save to show it on the site.' : 'Cover replaced. It\'s live in about a minute.');
   } catch (e) { toast('Cover upload failed: ' + e.message, true); }
 }
 
@@ -213,17 +227,25 @@ async function loadRuns() {
       const res = w.status !== 'completed' ? 'running' : w.conclusion;
       return `<li><span class="dot ${st}" aria-hidden="true"></span><span><a href="${esc(w.html_url)}" target="_blank" rel="noopener">${esc(name)}</a> <small>${esc(why[w.event] || w.event)}</small></span><small>${esc(res)}, ${ago(w.created_at)}</small></li>`;
     }).join('') || '<li><span></span><span>No runs yet.</span><span></span></li>';
-  } catch (e) { el.innerHTML = `<li><span class="dot bad"></span><span>${esc(e.message)}</span><span></span></li>`; }
+  } catch (e) { el.innerHTML = `<li><span class="dot bad"></span><span>${esc(e.message)}</span><span></span></li>`; if (/token|access|permission/i.test(e.message)) clearInterval(runsTimer); }
 }
 
 // ---------- save ----------
+const okUrl = u => !u || /^(https?:\/\/|mailto:)/i.test(String(u).trim()) || /^[\w.\/-]+$/.test(String(u).trim());
+function badLinks() {
+  const out = [], c = data.content, g = data.games;
+  if (c) { if (!okUrl(c.github)) out.push('GitHub profile URL'); (c.links || []).forEach((l, i) => { if (!okUrl(l.url)) out.push(`Contact link ${i + 1}`); }); }
+  if (g) for (const list of ['featured', 'archive']) (g[list] || []).forEach(x => { if (!okUrl(x.source)) out.push(`Source link of "${x.title || 'untitled'}"`); if (x.play && !/^(https?:\/\/|games\/)/i.test(x.play)) out.push(`Play link of "${x.title || 'untitled'}"`); });
+  return out;
+}
 $('save').onclick = async () => {
+  const bad = badLinks(); if (bad.length) return toast(`Fix these links first (use https:// or mailto:): ${bad.join(', ')}`, true);
   const keys = dirtyKeys(); $('save').disabled = true;
   try {
     for (const k of keys) await saveKey(k);
     refreshSavebar(); toast('Saved. Your site updates in about a minute.');
   } catch (e) {
-    toast('Save failed: ' + e.message + (/sha|match/i.test(e.message) ? ' Reload the page to get the latest version.' : ''), true);
+    toast(/sha|match|conflict/i.test(e.message) ? 'Someone changed this file on GitHub since you opened it. Copy your edits, reload the page, and apply them again.' : 'Save failed: ' + e.message, true);
   } finally { $('save').disabled = false; }
 };
 $('discard').onclick = () => { for (const k of dirtyKeys()) data[k] = JSON.parse(saved[k]); refreshSavebar(); render(); };
@@ -239,14 +261,19 @@ async function start() {
     if (token) toast(e.message, true);
   }
 }
-$('connect').onclick = () => {
-  token = $('token').value.trim(); if (!token) return toast('Paste your token first.', true);
-  try { ($('remember').checked ? localStorage : sessionStorage).setItem('site-dash-token', token); } catch (e) {}
-  start();
+$('connect').onclick = async () => {
+  const t = $('token').value.trim(); if (!t) return toast('Paste your token first.', true);
+  token = t;
+  try { await gh(`/repos/${REPO}`); } catch (e) { token = ''; return toast(e.message, true); }
+  try { sessionStorage.setItem('site-dash-token', t); } catch (e) {}
+  $('token').value = ''; start();
 };
 $('token').addEventListener('keydown', e => { if (e.key === 'Enter') $('connect').click(); });
 $('logout').onclick = () => {
-  try { localStorage.removeItem('site-dash-token'); sessionStorage.removeItem('site-dash-token'); } catch (e) {}
+  const b = $('logout');
+  if (dirtyKeys().length && !b.dataset.armed) { b.dataset.armed = '1'; b.textContent = 'Unsaved changes. Sign out anyway?'; setTimeout(() => { delete b.dataset.armed; b.textContent = 'Sign out'; }, 3000); return; }
+  try { sessionStorage.removeItem('site-dash-token'); } catch (e) {}
+  saved.content = saved.games = saved.sync = undefined; for (const k of Object.keys(data)) saved[k] = JSON.stringify(data[k]);
   location.reload();
 };
 document.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => { tab = b.dataset.tab; render(); });

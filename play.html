@@ -39,10 +39,11 @@
     f.title = title;
     f.allow = 'fullscreen; autoplay; encrypted-media; picture-in-picture; gamepad; accelerometer; gyroscope; xr-spatial-tracking';
     f.allowFullscreen = true;
-    document.body.appendChild(f);
+    fetch(game, { method: 'HEAD', cache: 'no-cache' }).then(r => { if (r.ok) document.body.appendChild(f); else notFound(); }).catch(() => document.body.appendChild(f));
     f.addEventListener('load', () => f.focus());
     document.getElementById('fs').onclick = () => (f.requestFullscreen || f.webkitRequestFullscreen || (() => {})).call(f);
-  } else {
+  } else notFound();
+  function notFound() {
     document.body.insertAdjacentHTML('beforeend', '<p class="err">That game could not be found. Go back and pick one from the list.</p>');
     document.getElementById('fs').hidden = true;
   }

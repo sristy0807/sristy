@@ -18,7 +18,7 @@ GitHub Pages rebuilds the site (~1 min)
 - **Games that sync:** `sync-games.json` (or the dashboard's *Sync and publish* tab).
 - **Site text:** `content.json` (dashboard *Profile* and *Work* tabs).
 - **Game cards:** `games.json` (dashboard *Games* tab).
-- **Instant updates:** add a repo secret `SITE_TOKEN` to each game repo (Settings → Secrets and variables → Actions). Use the same fine-grained token as the dashboard. Without it, changes still arrive within 15 minutes.
+- **Instant updates:** add a repo secret `SITE_TOKEN` to each game repo (Settings → Secrets and variables → Actions). Use a separate fine-grained token with access to **sristy** only and the single permission **Contents: Read and write** (don't reuse the dashboard token). Without it, changes still arrive within 15 minutes.
 
 ## Add a game
 

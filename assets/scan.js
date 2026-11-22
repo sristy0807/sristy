@@ -7,7 +7,7 @@
   canvas.tabIndex = 0;
 
   const gl = canvas.getContext('webgl', { antialias: false, preserveDrawingBuffer: false });
-  if (!gl) { canvas.replaceWith(Object.assign(document.createElement('p'), { textContent: 'This shader needs WebGL.' })); return; }
+  if (!gl) { const cap = canvas.parentElement.querySelector('figcaption'); if (cap) cap.remove(); canvas.replaceWith(Object.assign(document.createElement('p'), { textContent: 'This live shader needs WebGL, which this browser has turned off.', style: 'padding:2rem 1rem;margin:0' })); return; }
 
   const vs = `attribute vec2 p; void main(){ gl_Position = vec4(p,0.,1.); }`;
   const fs = `
@@ -140,7 +140,8 @@ void main(){
   canvas.setAttribute('aria-label', 'Simulated ultrasound. Arrow keys change window and level.');
 
   let visible = true;
-  new IntersectionObserver(([en]) => { visible = en.isIntersecting; if (visible && !reduce) requestAnimationFrame(loop); }).observe(canvas);
+  let running = false;
+  new IntersectionObserver(([en]) => { visible = en.isIntersecting; if (visible && !reduce && !running) { running = true; requestAnimationFrame(loop); } }).observe(canvas);
 
   function frame(t) {
     resize();
@@ -155,9 +156,9 @@ void main(){
     gl.uniform1f(uW, state.W); gl.uniform1f(uL, state.L);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
   }
-  function loop(t) { if (!visible) return; frame(t); requestAnimationFrame(loop); }
+  function loop(t) { if (!visible) { running = false; return; } frame(t); requestAnimationFrame(loop); }
 
   showWL();
-  if (reduce) frame(0); else requestAnimationFrame(loop);
+  if (reduce) frame(0);
   addEventListener('resize', () => frame(performance.now()));
 })();
