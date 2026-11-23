@@ -2,6 +2,22 @@
   "_howto": "Add one object per game. 'play' is a folder inside games/ (e.g. games/my-game/) or a full URL. Leave 'play' empty for projects without a web build; they show in the archive with a source link.",
   "featured": [
     {
+      "title": "Qubit Quest",
+      "year": 2026,
+      "engine": "JavaScript",
+      "description": "Learn quantum computing by building real circuits: superposition, phase, entanglement, then Deutsch's algorithm and Grover search. A live simulator shows every state as you add gates.",
+      "tags": [
+        "Quantum computing",
+        "13 levels",
+        "Sandbox",
+        "No maths needed"
+      ],
+      "controls": "Pick a gate, then tap a slot on a wire.",
+      "play": "games/qubit-quest/",
+      "source": "",
+      "thumbnail": "games/qubit-quest/cover.jpg"
+    },
+    {
       "title": "Chess School",
       "year": 2026,
       "engine": "JavaScript",

@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f4f7fb">
+<title>Qubit Quest</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Lexend:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* VOICE: curious, clear, a good teacher's notebook. IDEA: a physics lab notebook on blue graph paper, gates as coloured tiles.
+   COLOUR: paper #f4f7fb, grid #dbe4f0, ink #1c2541, amplitude teal #0f9d8a, phase magenta #c2185b, gate blue/red/violet.
+   TYPE: Sora for titles and gates, Lexend for reading. LAYOUT: circuit left/top, the state it makes right/below. */
+:root{--paper:#f4f7fb;--grid:#dbe4f0;--grid2:#c9d6e8;--ink:#1c2541;--muted:#5b6785;--card:#fff;--amp:#0f9d8a;--amp2:#8fd8cc;--phase:#c2185b;
+  --gX:#e4572e;--gH:#2f6fdb;--gZ:#7b4fd6;--gC:#1c2541;--ok:#1f9d55;--bad:#d64045;--cell:52px;--r:16px;
+  --head:"Sora",system-ui,sans-serif;--body:"Lexend",system-ui,sans-serif}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0;min-height:100%}
+body{background:var(--paper);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:24px 24px;color:var(--ink);font:16px/1.55 var(--body);-webkit-tap-highlight-color:transparent;overflow-x:clip}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--phase);outline-offset:2px}
+#app{max-width:1120px;margin:0 auto;min-height:100dvh;padding:max(env(safe-area-inset-top),12px) max(env(safe-area-inset-right),14px) max(env(safe-area-inset-bottom),14px) max(env(safe-area-inset-left),14px)}
+h1,h2,h3{font-family:var(--head);line-height:1.1;margin:0}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:8px 16px;border-radius:12px;border:2px solid var(--ink);background:var(--card);font-weight:600;box-shadow:3px 3px 0 var(--ink)}
+.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.btn.icon{width:44px;padding:0}.btn:disabled{opacity:.4;cursor:not-allowed;box-shadow:none}
+.primary{min-height:50px;padding:10px 22px;border-radius:14px;border:2px solid var(--ink);background:var(--gH);color:#fff;font:700 17px var(--head);box-shadow:4px 4px 0 var(--ink)}
+.primary:active{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--ink)}
+.link{background:none;border:0;color:var(--gH);text-decoration:underline;text-underline-offset:3px;min-height:44px;font-weight:600}
+.card{background:var(--card);border:2px solid var(--ink);border-radius:var(--r);box-shadow:4px 4px 0 var(--ink)}
+.muted{color:var(--muted)}
+.topbar{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.topbar .grow{flex:1;font:700 19px var(--head);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chip{display:inline-flex;align-items:center;gap:6px;border:2px solid var(--ink);background:var(--card);border-radius:999px;padding:5px 14px;font-weight:700;min-height:40px}
+.chip .st{color:#e0a100}
+.ket{font-family:var(--head);font-weight:700;white-space:nowrap}
+/* gate tile */
+.gate{display:inline-grid;place-items:center;width:var(--g,40px);height:var(--g,40px);border-radius:10px;border:2px solid var(--ink);color:#fff;font:800 calc(var(--g,40px)*.45)/1 var(--head);background:var(--gZ);box-shadow:2px 2px 0 var(--ink)}
+.gate.X,.gate.Y{background:var(--gX)}.gate.H{background:var(--gH)}.gate.Z,.gate.S,.gate.T{background:var(--gZ)}
+.gate.CX,.gate.CZ,.gate.SW{background:var(--card);color:var(--ink)}
+.gate.OR,.gate.MK{background:#ffd23f;color:var(--ink)}
+/* menu */
+.menu{min-height:calc(100dvh - 26px);display:flex;flex-direction:column}
+.menubar{display:flex;align-items:center;gap:8px}
+.menumain{flex:1;display:grid;align-content:center;justify-items:center;gap:clamp(18px,4vh,40px);padding:10px 0}
+.brand{text-align:center;display:grid;justify-items:center}
+.brand svg{width:clamp(150px,40vw,230px);height:auto;margin-bottom:8px}
+.logo{font:800 clamp(46px,12vw,86px)/.95 var(--head);letter-spacing:-.03em}
+.logo span{color:var(--gH)}
+.tag{margin:.5em 0 0;color:var(--muted)}.tag .bn{display:block;font-size:1.15em;color:var(--ink);font-weight:500}
+.menubtns{display:grid;gap:12px;width:min(100%,390px)}
+.mbtn{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:58px;padding:12px 18px;border-radius:16px;border:2px solid var(--ink);background:var(--card);font:700 19px var(--head);text-align:left;box-shadow:4px 4px 0 var(--ink)}
+.mbtn small{font:500 14px var(--body);color:var(--muted);text-align:right}
+.mbtn:active:not(:disabled){transform:translate(2px,2px);box-shadow:2px 2px 0 var(--ink)}
+.mbtn:disabled{opacity:.5;cursor:not-allowed}
+.mbtn.play{background:var(--gH);color:#fff;min-height:76px;font-size:28px}
+.mbtn.play small{color:rgba(255,255,255,.9)}
+/* overlay */
+.overlay{position:fixed;inset:0;z-index:30;background:rgba(28,37,65,.45);display:grid;place-items:center;padding:16px;animation:fade .2s}
+.modal{width:min(100%,480px);max-height:90dvh;overflow:auto;padding:22px}
+.modal h2{font-size:26px;margin-bottom:8px}
+.modal .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.modal .mbtn{width:100%;margin-top:10px;flex-direction:column;align-items:flex-start;gap:2px;box-shadow:3px 3px 0 var(--ink)}
+.modal .mbtn small{text-align:left}
+.setrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:2px dashed var(--grid2)}
+.setrow small{display:block;color:var(--muted)}
+.toggle{width:56px;height:32px;border-radius:999px;border:2px solid var(--ink);background:#e3e8f0;position:relative;flex:none}
+.toggle::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:var(--ink);transition:transform .2s}
+.toggle[aria-pressed=true]{background:var(--amp2)}.toggle[aria-pressed=true]::after{transform:translateX(24px)}
+.seg{display:flex;flex-wrap:wrap;border:2px solid var(--ink);border-radius:12px;overflow:hidden}
+.seg button{border:0;background:var(--card);padding:6px 12px;min-height:40px;font-weight:600}
+.seg button+button{border-left:2px solid var(--ink)}
+.seg button[aria-pressed=true]{background:var(--ink);color:#fff}
+.danger{color:var(--bad)!important;border-color:var(--bad)!important;box-shadow:3px 3px 0 var(--bad)!important}
+.bigstars{font-size:44px;color:#e0a100;letter-spacing:6px;text-align:center}
+/* levels */
+.chapter{padding:16px clamp(12px,3vw,24px) 18px;margin-bottom:16px}
+.chap{display:flex;align-items:center;gap:10px;font-size:22px;margin-bottom:14px}
+.chap small{margin-left:auto;font:600 14px var(--body);color:var(--muted)}
+.chap .gate{--g:34px}
+.track{display:grid;grid-template-columns:repeat(var(--k),minmax(0,1fr));position:relative;gap:6px}
+.track::before{content:"";position:absolute;left:calc(50%/var(--k));right:calc(50%/var(--k));top:30px;border-top:3px dashed var(--grid2)}
+.node{background:none;border:0;padding:0;display:grid;justify-items:center;gap:6px;text-align:center}
+.disc{width:60px;height:60px;border-radius:50%;display:grid;place-items:center;font:800 22px var(--head);background:var(--card);border:2px solid var(--ink);box-shadow:3px 3px 0 var(--ink);position:relative;z-index:1}
+.node.done .disc{background:var(--amp);color:#fff}
+.node.now .disc{background:#ffd23f;animation:bob 1.4s ease-in-out infinite}
+.node.locked{cursor:not-allowed}.node.locked .disc{opacity:.45;box-shadow:none}
+.node .nt{font-weight:600;font-size:13px;line-height:1.2;max-width:12ch}
+.node .stars{font-size:13px;color:#e0a100;letter-spacing:1px}
+@keyframes bob{50%{transform:translateY(-4px)}}
+@keyframes fade{from{opacity:0}}
+.lesson{padding:22px;max-width:680px;margin:0 auto}
+.lesson h2{font-size:28px;margin-bottom:8px}
+.lesson .actions{margin-top:16px;display:flex;gap:10px;flex-wrap:wrap}
+</style>
+<style>
+/* puzzle screen */
+.lab{display:grid;gap:14px;grid-template-columns:minmax(0,1fr)}
+.goal{padding:12px 16px;display:flex;gap:12px;align-items:center}
+.goal .txt{flex:1}.goal b{font-family:var(--head)}
+.goal .count{font:800 26px var(--head);text-align:center;line-height:1}.goal .count small{display:block;font:500 12px var(--body);color:var(--muted)}
+.circuit{padding:14px 12px 10px;overflow-x:auto}
+.wires{display:flex;align-items:stretch;gap:0;position:relative;width:max-content;min-width:100%}
+.labels{display:flex;flex-direction:column;justify-content:space-around;padding-right:8px}
+.labels div{height:var(--cell);display:flex;align-items:center;font:700 15px var(--head);white-space:nowrap}
+.col{position:relative;display:flex;flex-direction:column}
+.cell{position:relative;width:var(--cell);height:var(--cell);border:0;background:none;padding:0;display:grid;place-items:center}
+.cell::before{content:"";position:absolute;left:0;right:0;top:50%;border-top:2px solid var(--ink);z-index:0}
+.cell:hover:not(:disabled)::after,.cell.pending::after{content:"";position:absolute;inset:6px;border:2px dashed var(--gH);border-radius:10px}
+.cell .gate{--g:calc(var(--cell)*.74);position:relative;z-index:2}
+.cell .ctrl{width:16px;height:16px;border-radius:50%;background:var(--ink);position:relative;z-index:2}
+.cell .targ{width:calc(var(--cell)*.5);height:calc(var(--cell)*.5);border-radius:50%;border:2px solid var(--ink);background:var(--card);position:relative;z-index:2;display:grid;place-items:center;font:700 calc(var(--cell)*.42)/1 var(--head)}
+.cell .swp{font:800 22px/1 var(--head);position:relative;z-index:2;background:var(--paper);padding:0 2px}
+.cell.locked .gate{outline:2px dashed var(--ink);outline-offset:2px}
+.vline{position:absolute;left:50%;width:2px;margin-left:-1px;background:var(--ink);z-index:1}
+.end{display:flex;flex-direction:column;justify-content:space-around;padding-left:6px}
+.end div{height:var(--cell);display:flex;align-items:center}
+.end svg{width:28px;height:22px}
+.palette{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:10px}
+.palette .pg{border:0;background:none;padding:3px;border-radius:12px}
+.palette .pg[aria-pressed=true]{background:#ffd23f;outline:2px solid var(--ink)}
+.palette .gate{--g:46px}
+.palette .hint{font-size:14px;color:var(--muted);flex-basis:100%}
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.state{padding:14px 16px}
+.state h3{font-size:16px;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.state h3 small{font:500 13px var(--body);color:var(--muted);margin-left:auto}
+.circles{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:8px 4px}
+.circ{display:grid;justify-items:center;gap:2px;text-align:center}
+.circ svg{width:clamp(56px,16vw,76px);height:clamp(56px,16vw,76px)}
+.circ .pct{font:600 13px var(--body);color:var(--muted)}
+.circ.hit .ket{color:var(--ok)}
+.viz{display:grid;gap:14px;grid-template-columns:minmax(0,1fr)}
+.bloch svg{width:100%;max-width:250px;height:auto;display:block;margin:0 auto}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin-top:8px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:50%;vertical-align:-2px;margin-right:4px}
+.hist{display:grid;gap:6px;margin-top:10px}
+.hist .bar{display:grid;grid-template-columns:3.4em 1fr 3em;gap:8px;align-items:center;font-size:14px}
+.hist .bar span:nth-child(2){height:18px;border:2px solid var(--ink);border-radius:6px;background:linear-gradient(90deg,var(--amp) var(--w,0%),transparent var(--w,0%));transition:--w .6s}
+.solved-banner{background:#e7f7ee;border-color:var(--ok);box-shadow:4px 4px 0 var(--ok)}
+.status{min-height:24px;font-weight:600}
+.status.ok{color:var(--ok)}
+.dots{display:flex;gap:6px}.dots i{width:10px;height:10px;border-radius:50%;background:var(--grid2)}
+@media(min-width:860px){
+  .lab{grid-template-columns:minmax(0,1.15fr) minmax(300px,1fr);align-items:start}
+  .lab .goal{grid-column:1 / -1}
+  .viz.one{grid-template-columns:1fr 1fr;align-items:center}
+}
+@media(orientation:landscape) and (max-height:560px){
+  .lab{grid-template-columns:minmax(0,1.2fr) minmax(260px,1fr);gap:10px}
+  .lab .goal{grid-column:1 / -1;padding:8px 12px}
+  .menumain{grid-template-columns:1fr 1fr;align-items:center}
+  .brand svg{width:clamp(100px,26vh,160px)}.logo{font-size:clamp(38px,11vh,64px)}
+  .mbtn{min-height:46px;padding:8px 14px;font-size:17px}.mbtn.play{min-height:58px;font-size:24px}
+  .viz.one{grid-template-columns:1fr 1fr;align-items:center}
+  .circ svg{width:60px;height:60px}
+}
+@media(min-width:760px){.menumain{grid-template-columns:1.1fr 1fr;align-items:center}}
+@media(max-width:420px){.topbar .dots{display:none}}
+:root{--np-bg:#1c2541;--np-fg:#fff;--np-acc:#ffd23f}
+#np{position:fixed;left:0;right:0;margin-inline:auto;width:max-content;top:max(env(safe-area-inset-top),10px);transform:translateY(-160%);z-index:60;display:flex;align-items:center;gap:10px;padding:7px 7px 7px 14px;border-radius:999px;background:var(--np-bg);color:var(--np-fg);box-shadow:0 10px 30px rgba(0,0,0,.35);transition:transform .5s cubic-bezier(.2,.9,.3,1.15);max-width:min(92vw,420px);font-family:var(--np-font,inherit)}
+#np.np-show{transform:none}#np.np-hide{transform:translateY(-160%)}
+.np-ic{font-size:20px;color:var(--np-acc);animation:npb .9s ease-in-out infinite;flex:none}
+@keyframes npb{50%{transform:translateY(-3px) rotate(-8deg)}}
+.np-t{display:grid;line-height:1.15;font-weight:800;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.np-t small{font-size:11px;opacity:.75;font-weight:700}
+.np-skip{flex:none;border:0;border-radius:999px;padding:6px 12px;min-height:36px;background:var(--np-acc);color:var(--np-bg);font:800 14px system-ui,sans-serif;cursor:pointer}
+.mus-off{opacity:.45}
+@media(prefers-reduced-motion:reduce){#np{transition:none}.np-ic{animation:none}}
+
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+{
+/* ---------- quantum simulator: state vector, up to 3 qubits ----------
+   Qubit 0 is the top wire and the leftmost bit of a ket: |q0 q1 q2>. */
+const C=(re,im=0)=>({re,im});
+const cadd=(a,b)=>C(a.re+b.re,a.im+b.im),cmul=(a,b)=>C(a.re*b.re-a.im*b.im,a.re*b.im+a.im*b.re);
+const cabs2=a=>a.re*a.re+a.im*a.im,cexp=t=>C(Math.cos(t),Math.sin(t));
+const R2=Math.SQRT1_2;
+const GATES1={
+  X:[[C(0),C(1)],[C(1),C(0)]],
+  Y:[[C(0),C(0,-1)],[C(0,1),C(0)]],
+  Z:[[C(1),C(0)],[C(0),C(-1)]],
+  H:[[C(R2),C(R2)],[C(R2),C(-R2)]],
+  S:[[C(1),C(0)],[C(0),C(0,1)]],
+  T:[[C(1),C(0)],[C(0),cexp(Math.PI/4)]]};
+function zeroState(n,start=0){const v=Array.from({length:1<<n},()=>C(0));v[start]=C(1);return v;}
+function bitOf(i,q,n){return (i>>(n-1-q))&1;}
+function apply1(v,n,q,M){const out=v.map(()=>C(0));
+  for(let i=0;i<v.length;i++){if(!cabs2(v[i]))continue;const b=bitOf(i,q,n),j=i^(1<<(n-1-q));
+    out[i]=cadd(out[i],cmul(M[b][b],v[i]));out[j]=cadd(out[j],cmul(M[1-b][b],v[i]));}
+  return out;}
+function applyCtrl(v,n,c,t,M){const out=v.slice();for(let i=0;i<v.length;i++){if(!bitOf(i,c,n)||bitOf(i,t,n))continue;const j=i|(1<<(n-1-t));
+    out[i]=cadd(cmul(M[0][0],v[i]),cmul(M[0][1],v[j]));out[j]=cadd(cmul(M[1][0],v[i]),cmul(M[1][1],v[j]));}return out;}
+function applySwap(v,n,a,b){const out=v.slice();for(let i=0;i<v.length;i++){const ba=bitOf(i,a,n),bb=bitOf(i,b,n);if(ba!==bb){const j=i^(1<<(n-1-a))^(1<<(n-1-b));out[j]=v[i];}}return out;}
+/* a placed gate: {t:'H',q:0} | {t:'CX',c:0,q:1} | {t:'CZ',c:0,q:1} | {t:'SW',c:0,q:1} | {t:'OR',f:fn} oracle on (0,1) */
+function applyGate(v,n,g){
+  if(GATES1[g.t])return apply1(v,n,g.q,GATES1[g.t]);
+  if(g.t==='CX')return applyCtrl(v,n,g.c,g.q,GATES1.X);
+  if(g.t==='CZ')return applyCtrl(v,n,g.c,g.q,GATES1.Z);
+  if(g.t==='SW')return applySwap(v,n,g.c,g.q);
+  if(g.t==='OR'){/* Deutsch oracle |x,y> -> |x, y xor f(x)> on qubits 0 (x) and 1 (y) */
+    const out=v.map(()=>C(0));for(let i=0;i<v.length;i++){const x=bitOf(i,0,n),j=g.f[x]?i^(1<<(n-2)):i;out[j]=cadd(out[j],v[i]);}return out;}
+  if(g.t==='MK'){/* Grover oracle: flip the sign of the marked basis state */
+    return v.map((a,i)=>i===g.m?C(-a.re,-a.im):a);}
+  return v;}
+/* circuit: columns of gates */
+function run(circ,n,start=0){let v=zeroState(n,start);for(const col of circ)for(const g of col)v=applyGate(v,n,g);return v;}
+/* overlap |<a|b>|^2 : 1 means same state up to global phase */
+function fidelity(a,b){let re=0,im=0;for(let i=0;i<a.length;i++){re+=a[i].re*b[i].re+a[i].im*b[i].im;im+=a[i].re*b[i].im-a[i].im*b[i].re;}return re*re+im*im;}
+const probs=v=>v.map(cabs2);
+function bloch(v){/* single qubit Bloch vector */const a=v[0],b=v[1];const ab=cmul(C(a.re,-a.im),b);return {x:2*ab.re,y:2*ab.im,z:cabs2(a)-cabs2(b)};}
+const ket=(i,n)=>'|'+i.toString(2).padStart(n,'0')+'⟩';
+function sample(v,shots){const p=probs(v),counts=p.map(()=>0);for(let s=0;s<shots;s++){let r=Math.random(),k=0;while(k<p.length-1&&r>p[k]){r-=p[k];k++;}counts[k]++;}return counts;}
+/* state from a list of [index, re, im] amplitudes (normalised) */
+function stateOf(n,amps){const v=zeroState(n);v[0]=C(0);for(const [i,re,im=0] of amps)v[i]=C(re,im);const s=Math.sqrt(v.reduce((a,x)=>a+cabs2(x),0));return v.map(x=>C(x.re/s,x.im/s));}
+
+/* ---------- levels ---------- */
+const S1=1/Math.SQRT2;
+const LV=(id,group,title,o)=>({id,group,title,...o});
+const LEVELS=[
+ LV(1,'Qubits','Flip it',{n:1,gates:['X'],cols:4,target:stateOf(1,[[1,1]]),goal:'Turn |0⟩ into |1⟩.',
+   lesson:`<p>A normal computer bit is 0 or 1. A <b>qubit</b> starts as <b>|0⟩</b> (say "ket zero").</p><p>The <b>X gate</b> flips it, like a NOT: |0⟩ becomes |1⟩. Tap <b>X</b>, then tap a slot on the wire.</p>`}),
+ LV(2,'Qubits','Two qubits',{n:2,gates:['X'],cols:4,target:stateOf(2,[[2,1]]),goal:'Make |10⟩: top qubit 1, bottom qubit 0.',
+   lesson:`<p>With two qubits there are four basic states: |00⟩, |01⟩, |10⟩, |11⟩. The first digit is the <b>top</b> wire.</p><p>Each circle on the right is one of those states. A full circle means "this is certainly the answer".</p>`}),
+ LV(3,'Qubits','Superposition',{n:1,gates:['H'],cols:4,target:stateOf(1,[[0,1],[1,1]]),goal:'Make an equal mix of |0⟩ and |1⟩.',shots:true,
+   lesson:`<p>The <b>H gate</b> (Hadamard) puts a qubit into <b>superposition</b>: half |0⟩, half |1⟩ at the same time.</p><p>Measuring it gives 0 or 1 at random, 50/50. After you solve it, tap <b>Measure 100×</b> to see.</p>`}),
+ LV(4,'Phase','Minus state',{n:1,gates:['H','X','Z'],cols:5,target:stateOf(1,[[0,1],[1,-1]]),goal:'Make (|0⟩ − |1⟩)/√2: the same mix, but with a minus sign.',
+   lesson:`<p>Amplitudes can be negative (in fact any direction). That direction is called <b>phase</b>, shown by the needle in each circle.</p><p>The <b>Z gate</b> flips the phase of |1⟩. Measuring can't see phase directly, but it matters a lot later.</p>`}),
+ LV(5,'Phase','Interference',{n:1,gates:['H','Z'],cols:5,target:stateOf(1,[[1,1]]),goal:'Reach |1⟩ using only H and Z.',
+   lesson:`<p>Two H gates in a row cancel out: the paths to |1⟩ <b>interfere</b> and vanish. That's quantum interference.</p><p>Flip the phase in the middle and the paths add up somewhere else instead.</p>`}),
+ LV(6,'Phase','Quarter turn',{n:1,gates:['H','S','T'],cols:5,target:stateOf(1,[[0,1],[1,0,1]]),goal:'Make (|0⟩ + i|1⟩)/√2.',
+   lesson:`<p>Phase isn't just + or −. <b>S</b> turns the phase of |1⟩ a quarter turn (multiplies by <i>i</i>). <b>T</b> turns it an eighth.</p><p>Watch the needle and the arrow on the sphere.</p>`}),
+ LV(7,'Phase','Around the sphere',{n:1,gates:['H','S','Z'],cols:6,target:stateOf(1,[[0,1],[1,0,-1]]),goal:'Point the arrow at −Y: (|0⟩ − i|1⟩)/√2.',
+   lesson:`<p>Every single-qubit state is a point on the <b>Bloch sphere</b>. |0⟩ is the top, |1⟩ the bottom, superpositions on the equator.</p><p>H swings the arrow over, S and Z spin it around the vertical axis.</p>`}),
+ LV(8,'Entanglement','Controlled NOT',{n:2,gates:['X','CX'],cols:5,target:stateOf(2,[[3,1]]),goal:'Make |11⟩. You can only flip the top qubit directly.',noX1:true,
+   lesson:`<p>The <b>CNOT</b> gate has a control (●) and a target (⊕). It flips the target only when the control is 1.</p><p>Tap CNOT, then tap the control slot, then the target slot in the same column.</p>`}),
+ LV(9,'Entanglement','Bell pair',{n:2,gates:['H','CX'],cols:5,target:stateOf(2,[[0,1],[3,1]]),goal:'Make (|00⟩ + |11⟩)/√2: two qubits that always agree.',shots:true,
+   lesson:`<p>Superposition plus CNOT gives <b>entanglement</b>. The two qubits become one shared state: measure one, and you know the other.</p><p>Solve it, then measure 100 times: you'll only ever see 00 or 11.</p>`}),
+ LV(10,'Entanglement','Opposites',{n:2,gates:['H','X','Z','CX'],cols:6,target:stateOf(2,[[1,1],[2,-1]]),goal:'Make (|01⟩ − |10⟩)/√2: qubits that always disagree.',
+   lesson:`<p>There are four <b>Bell states</b>. This one, the "singlet", always gives opposite answers, with a minus sign between them.</p><p>Build a Bell pair, then adjust it with X and Z.</p>`}),
+ LV(11,'Entanglement','Three-way',{n:3,gates:['H','CX'],cols:5,target:stateOf(3,[[0,1],[7,1]]),goal:'Make (|000⟩ + |111⟩)/√2: three qubits that all agree.',shots:true,
+   lesson:`<p>Entanglement scales: one H and a chain of CNOTs ties any number of qubits together. This is the <b>GHZ state</b>.</p>`}),
+ LV(12,'Algorithms','Deutsch',{n:2,gates:['H','X'],cols:6,kind:'deutsch',fixed:[{col:3,g:{t:'OR'}}],goal:'Build a circuit that tells constant from balanced in one go: top qubit reads 0 for constant, 1 for balanced.',
+   lesson:`<p>The box <b>f</b> hides a function of one bit. It's either <b>constant</b> (same output for 0 and 1) or <b>balanced</b> (different outputs). Classically you must ask it twice.</p>
+   <p>Deutsch's trick asks once: put the top qubit in superposition, the bottom one in the <b>minus</b> state, call f, then H the top again. Your circuit is tested against all four possible functions.</p>`}),
+ LV(13,'Algorithms','Grover search',{n:2,gates:['H','X','Z','CZ'],cols:9,kind:'grover',fixed:[{col:0,g:{t:'H',q:0}},{col:0,g:{t:'H',q:1}},{col:1,g:{t:'MK'}}],goal:'Add the amplifier so the marked answer comes out with certainty, whichever one the box marks.',
+   lesson:`<p><b>Grover's search</b> finds a marked item faster than checking one by one. The circuit starts with all four answers equally likely (H on both), then the box marks one by flipping its sign.</p>
+   <p>Your job: <b>amplify</b> it. The amplifier ("diffuser") is H H, then X X, a CZ, X X, then H H. Your circuit is tested with every possible marked answer.</p>`})];
+const CHAP_ICON={Qubits:'X',Phase:'Z',Entanglement:'CX',Algorithms:'H'};
+const DEUTSCH_FS=[[0,0],[1,1],[0,1],[1,0]];/* constant 0, constant 1, identity, NOT */
+
+function Jukebox(cfg){
+  const SC={major:[0,2,4,5,7,9,11],minor:[0,2,3,5,7,8,10],dorian:[0,2,3,5,7,9,10],mixo:[0,2,4,5,7,9,10],harm:[0,2,3,5,7,8,11]};
+  const Q={maj:[0,4,7],min:[0,3,7],maj7:[0,4,7,11],m7:[0,3,7,10],'7':[0,4,7,10],m7b5:[0,3,6,10],sus:[0,5,7],add9:[0,4,7,14],m9:[0,3,7,10,14],'6':[0,4,7,9],dim:[0,3,6],maj9:[0,4,7,11,14]};
+  let ctx=null,out,bus,rev,noiseBuf,on=false,timer=null,T=null,step=0,nextT=0,last=-1,fade=null,prevVoicing=null;
+  const mtof=m=>440*Math.pow(2,(m-69)/12);
+  function rng(seed){let s=seed>>>0||1;return()=>{s^=s<<13;s^=s>>>17;s^=s<<5;return ((s>>>0)%100000)/100000;};}
+  function ensure(){if(ctx)return true;const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return false;
+    try{ctx=new AC();}catch(e){return false;}
+    out=ctx.createGain();out.gain.value=cfg.volume??.3;const comp=ctx.createDynamicsCompressor();comp.threshold.value=-18;comp.ratio.value=3;out.connect(comp);comp.connect(ctx.destination);if(cfg.tap)cfg.tap(ctx,comp);
+    bus=ctx.createGain();bus.connect(out);
+    rev=ctx.createConvolver();const len=ctx.sampleRate*2.4,imp=ctx.createBuffer(2,len,ctx.sampleRate);
+    for(let c=0;c<2;c++){const d=imp.getChannelData(c);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,3.2);}
+    rev.buffer=imp;const wet=ctx.createGain();wet.gain.value=cfg.reverb??.28;rev.connect(wet);wet.connect(out);
+    const nl=ctx.sampleRate;noiseBuf=ctx.createBuffer(1,nl,ctx.sampleRate);const nd=noiseBuf.getChannelData(0);for(let i=0;i<nl;i++)nd[i]=Math.random()*2-1;
+    document.addEventListener('visibilitychange',()=>{if(!ctx)return;if(document.hidden)ctx.suspend();else if(on)ctx.resume();});
+    return true;}
+  /* ---- instruments ---- */
+  function env(g,t,a,peak,dur,rel){g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(peak,t+a);g.gain.setTargetAtTime(0,t+Math.max(a,dur),rel);}
+  function osc(type,f,t,end,det=0){const o=ctx.createOscillator();o.type=type;o.frequency.setValueAtTime(f,t);o.detune.value=det;o.start(t);o.stop(end);return o;}
+  function lp(f,q=.7){const b=ctx.createBiquadFilter();b.type='lowpass';b.frequency.value=f;b.Q.value=q;return b;}
+  function send(node,amt){node.connect(bus);if(amt){const s=ctx.createGain();s.gain.value=amt;node.connect(s);s.connect(rev);}}
+  const INST={
+    keys(m,t,d,v){const g=ctx.createGain(),f=lp(2600);env(g,t,.008,v*.16,.02,Math.min(d,1.4)*.5);[['sine',0],['triangle',12]].forEach(([ty,o],i)=>{const n=osc(ty,mtof(m+o),t,t+d+2);const gg=ctx.createGain();gg.gain.value=i?.25:1;n.connect(gg);gg.connect(f);});f.connect(g);send(g,.35);},
+    piano(m,t,d,v){const g=ctx.createGain(),f=lp(3200);env(g,t,.004,v*.2,.01,Math.min(d+.3,2)*.42);[['triangle',0,1],['sine',12,.35],['sine',19,.08]].forEach(([ty,o,a])=>{const n=osc(ty,mtof(m+o),t,t+d+3);const gg=ctx.createGain();gg.gain.value=a;n.connect(gg);gg.connect(f);});f.connect(g);send(g,.45);},
+    harpsi(m,t,d,v){const g=ctx.createGain(),f=lp(4200,1.2);env(g,t,.002,v*.1,.01,.28);[0,12].forEach((o,i)=>{const n=osc('sawtooth',mtof(m+o),t,t+1.6,i?4:-4);n.connect(f);});f.connect(g);send(g,.35);},
+    pad(m,t,d,v){const g=ctx.createGain(),f=lp(1100);env(g,t,.5,v*.07,d,.6);[-8,8].forEach(det=>osc('sawtooth',mtof(m),t,t+d+3,det).connect(f));f.connect(g);send(g,.6);},
+    strings(m,t,d,v){const g=ctx.createGain(),f=lp(2000);env(g,t,.32,v*.06,d,.45);const lfo=ctx.createOscillator(),lg=ctx.createGain();lfo.frequency.value=5.2;lg.gain.value=6;lfo.connect(lg);lfo.start(t);lfo.stop(t+d+3);
+      [-6,0,7].forEach(det=>{const n=osc('sawtooth',mtof(m),t,t+d+3,det);lg.connect(n.detune);n.connect(f);});f.connect(g);send(g,.7);},
+    bass(m,t,d,v){const g=ctx.createGain(),f=lp(520);env(g,t,.01,v*.3,d*.8,.08);osc('triangle',mtof(m),t,t+d+.6).connect(f);const s=osc('sine',mtof(m-12),t,t+d+.6);const sg=ctx.createGain();sg.gain.value=.6;s.connect(sg);sg.connect(f);f.connect(g);send(g,0);},
+    synthbass(m,t,d,v){const g=ctx.createGain(),f=lp(300,6);f.frequency.setValueAtTime(1800,t);f.frequency.exponentialRampToValueAtTime(260,t+.18);env(g,t,.005,v*.2,d*.7,.06);osc('square',mtof(m),t,t+d+.5).connect(f);f.connect(g);send(g,0);},
+    pluck(m,t,d,v){const g=ctx.createGain(),f=lp(400,3);f.frequency.setValueAtTime(3800,t);f.frequency.exponentialRampToValueAtTime(500,t+.25);env(g,t,.004,v*.12,.02,.22);osc('sawtooth',mtof(m),t,t+1.4).connect(f);f.connect(g);send(g,.4);},
+    lead(m,t,d,v){const g=ctx.createGain(),f=lp(2600);env(g,t,.02,v*.07,d*.9,.12);const n=osc('square',mtof(m),t,t+d+1);const lfo=ctx.createOscillator(),lg=ctx.createGain();lfo.frequency.value=5.5;lg.gain.value=10;lfo.connect(lg);lg.connect(n.detune);lfo.start(t+.15);lfo.stop(t+d+1);n.connect(f);f.connect(g);send(g,.3);},
+    chip(m,t,d,v){const g=ctx.createGain();env(g,t,.003,v*.055,d*.85,.03);osc('square',mtof(m),t,t+d+.4).connect(g);send(g,.15);},
+    bell(m,t,d,v){const g=ctx.createGain();env(g,t,.003,v*.1,.01,.9);const c=osc('sine',mtof(m),t,t+4),mo=osc('sine',mtof(m)*3.5,t,t+4),mg=ctx.createGain();mg.gain.setValueAtTime(mtof(m)*1.2,t);mg.gain.exponentialRampToValueAtTime(1,t+1.5);mo.connect(mg);mg.connect(c.frequency);c.connect(g);send(g,.55);},
+    guitar(m,t,d,v){const g=ctx.createGain(),f=lp(2200,1);f.frequency.setValueAtTime(3000,t);f.frequency.exponentialRampToValueAtTime(900,t+.4);env(g,t,.003,v*.11,.02,.4);[['triangle',0],['sawtooth',0]].forEach(([ty],i)=>{const n=osc(ty,mtof(m),t,t+2,i?3:0);const gg=ctx.createGain();gg.gain.value=i?.25:1;n.connect(gg);gg.connect(f);});f.connect(g);send(g,.35);}};
+  function noise(t,dur,type,freq,v,q=1){const s=ctx.createBufferSource(),f=ctx.createBiquadFilter(),g=ctx.createGain();s.buffer=noiseBuf;f.type=type;f.frequency.value=freq;f.Q.value=q;
+    g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+dur);s.connect(f);f.connect(g);send(g,.08);s.start(t,Math.random()*.5);s.stop(t+dur+.02);}
+  const DRUM={k(t,v){const g=ctx.createGain(),o=osc('sine',150,t,t+.5);o.frequency.exponentialRampToValueAtTime(42,t+.16);g.gain.setValueAtTime(v*.55,t);g.gain.exponentialRampToValueAtTime(.0001,t+.38);o.connect(g);g.connect(bus);},
+    s(t,v){noise(t,.16,'bandpass',1900,v*.22,.8);const g=ctx.createGain(),o=osc('triangle',190,t,t+.2);g.gain.setValueAtTime(v*.12,t);g.gain.exponentialRampToValueAtTime(.0001,t+.1);o.connect(g);g.connect(bus);},
+    c(t,v){[0,.012,.024].forEach(d=>noise(t+d,.1,'bandpass',1400,v*.18,1.4));},
+    h(t,v){noise(t,.04,'highpass',8000,v*.07);},
+    o(t,v){noise(t,.26,'highpass',7000,v*.06);},
+    r(t,v){noise(t,.03,'bandpass',3200,v*.16,4);const g=ctx.createGain(),o=osc('square',820,t,t+.05);g.gain.setValueAtTime(v*.03,t);g.gain.exponentialRampToValueAtTime(.0001,t+.03);o.connect(g);g.connect(bus);},
+    z(t,v){noise(t,.05,'highpass',6000,v*.05);}, /* shaker */
+    b(t,v){const g=ctx.createGain(),o=osc('sine',90,t,t+.9);o.frequency.exponentialRampToValueAtTime(55,t+.5);g.gain.setValueAtTime(v*.25,t);g.gain.exponentialRampToValueAtTime(.0001,t+.8);o.connect(g);send(g,.4);}}; /* soft timpani */
+  /* ---- composition ---- */
+  function build(tr,seed){const r=rng(seed),scale=SC[tr.scale||'major'],root=tr.key;
+    const chords=tr.prog.map(([off,q])=>({root:root+off,tones:Q[q].map(i=>root+off+i)}));
+    const degToMidi=d=>{const o=Math.floor(d/7),i=((d%7)+7)%7;return root+12+12*o+scale[i];};
+    /* two 2-bar motifs on a 16th grid: [step, len, degree] */
+    const style=tr.mel||{};const dens=style.density??.45,rhythm=style.rhythm||'mid';
+    const grid=rhythm==='slow'?4:rhythm==='busy'?2:2;
+    function motif(){const notes=[];let deg=Math.floor(r()*5)+2;
+      for(let s=0;s<32;s+=grid){const strong=s%8===0;if(!strong&&r()>dens)continue;if(strong&&s%16!==0&&r()<.25)continue;
+        deg+=Math.round((r()-.5)*(r()<.2?6:3));deg=Math.max(-1,Math.min(10,deg));
+        let len=grid;while(s+len<32&&r()<(rhythm==='slow'?.6:.35))len+=grid;notes.push([s,len,deg]);s+=len-grid;}
+      return notes;}
+    const M=[motif(),motif()];
+    const B=[motif(),motif()];
+    return {chords,degToMidi,M,B};}
+  function snap(m,tones){let best=m,bd=99;for(const t of tones)for(let o=-24;o<=36;o+=12){const c=t+o,d=Math.abs(c-m);if(d<bd){bd=d;best=c;}}return best;}
+  function voicing(tones){/* keep chords near middle C, close to the previous one */
+    const base=tones.map(t=>{let n=t;while(n<55)n+=12;while(n>67)n-=12;return n;}).sort((a,b)=>a-b);
+    let best=base,bs=1e9;for(let inv=0;inv<base.length;inv++){const v=base.map((n,i)=>i<inv?n+12:n).sort((a,b)=>a-b);const sc=prevVoicing?v.reduce((a,n,i)=>a+Math.abs(n-(prevVoicing[i]??n)),0):Math.abs(v[0]-60);if(sc<bs){bs=sc;best=v;}}
+    prevVoicing=best;return best;}
+  const FORM=[['intro',4],['A',8],['A',8],['B',8],['A',8],['outro',4]];
+  function sectionAt(bar){let b=bar;for(const [name,len] of FORM){if(b<len)return {name,bar:b};b-=len;}return null;}
+  function playStep(t){const tr=T.tr,S=T.S,bar=Math.floor(step/16),st=step%16,sec=sectionAt(bar);if(!sec){T.done=true;return;}
+    const dur16=60/tr.bpm/4,ch=S.chords[sec.bar%S.chords.length],full=sec.name==='A'||sec.name==='B';
+    const tt=t+(st%2?(tr.swing||0)*dur16:0);
+    const vEnd=sec.name==='outro'?Math.max(.15,1-sec.bar/4):1,vIn=sec.name==='intro'?.6+sec.bar*.1:1,vel=vEnd*vIn;
+    /* chords */
+    const cp=tr.chordPat||'x...............';if(cp[st]==='x'){let len=1;while(st+len<16&&cp[st+len]!=='x')len++;const v=voicing(ch.tones);v.forEach(n=>INST[tr.chord](n,tt,len*dur16,vel*(tr.chordVol??1)));}
+    /* arpeggio */
+    if(tr.arp&&tr.arpPat){const a=tr.arpPat[st%tr.arpPat.length];if(a!=='.'&&a!==undefined){const v=voicing(ch.tones);prevVoicing=v;const n=v[(+a)%v.length]+(tr.arpOct??12);INST[tr.arp](n,tt,dur16*2,vel*.8*(tr.arpVol??1));}}
+    /* bass */
+    if(tr.bass&&sec.name!=='intro'||tr.bass&&sec.bar>=2){const bp=tr.bassPat||'x.......x.......',b=bp[st];
+      if(b&&b!=='.'){const off=b==='5'?7:b==='8'?12:b==='3'?ch.tones[1]-ch.root:0;let len=1;while(st+len<16&&bp[st+len]==='.')len++;INST[tr.bass](ch.root-24+(tr.bassOct??0)+off,tt,len*dur16,vel);}}
+    /* drums */
+    if(tr.drums&&(full||sec.name==='intro'&&sec.bar>=2)){const half=sec.name==='B'&&tr.breakdown!==false;
+      for(const [k,pat] of Object.entries(tr.drums)){if(half&&k==='k'&&st%8)continue;if(half&&(k==='h'||k==='o')&&st%4)continue;if(sec.name==='intro'&&k!=='h'&&k!=='z'&&k!=='r')continue;
+        const c=pat[st%pat.length];if(c&&c!=='.')DRUM[k](tt,(c==='X'?1:.7)*vel);}
+      if(full&&sec.bar%8===7&&st>=12&&tr.fill!==false)DRUM.s(tt,.5);}
+    /* melody */
+    if(tr.lead&&full){const mot=(sec.name==='B'?S.B:S.M)[Math.floor(sec.bar/2)%2],pos=(sec.bar%2)*16+st;
+      for(const [s,len,deg] of mot)if(s===pos){let m=S.degToMidi(deg+(sec.name==='B'?2:0))+(tr.leadOct??0);if(st%4===0)m=snap(m,ch.tones.map(x=>x+12+(tr.leadOct??0)));INST[tr.lead](m,tt,len*dur16*.95,vel*(tr.leadVol??1));}}
+    /* counter bells in B */
+    if(tr.sparkle&&sec.name==='B'&&st===0&&sec.bar%2===0){INST[tr.sparkle](ch.tones[2]+24,tt+dur16*6,dur16*4,.6);}
+  }
+  function tick(){if(!T)return;while(nextT<ctx.currentTime+.18){if(T.done){scheduleNext(1.2);return;}playStep(nextT);step++;nextT+=60/T.tr.bpm/4;}}
+  function pickTrack(){const n=cfg.tracks.length;let i;do i=Math.floor(Math.random()*n);while(n>1&&i===last);last=i;return i;}
+  function startTrack(i){const tr=cfg.tracks[i];T={tr,S:build(tr,(i+1)*7919+(cfg.seed||1)),done:false};step=0;prevVoicing=null;nextT=ctx.currentTime+.12;
+    bus.gain.cancelScheduledValues(ctx.currentTime);bus.gain.setValueAtTime(tr.gain||1,ctx.currentTime);if(cfg.onTrack)cfg.onTrack(tr.title,tr);}
+  function scheduleNext(gap){const id=T;T=null;clearTimeout(fade);fade=setTimeout(()=>{if(on&&!T)startTrack(pickTrack());},gap*1000);}
+  return {
+    start(){if(!ensure())return;if(ctx.state==='suspended')ctx.resume().catch(()=>{});if(on&&(T||fade))return;on=true;if(!timer)timer=setInterval(tick,40);if(!T)startTrack(pickTrack());},
+    stop(){on=false;if(!ctx)return;const now=ctx.currentTime;bus.gain.setTargetAtTime(0,now,.15);T=null;clearTimeout(fade);fade=null;setTimeout(()=>{if(!on&&ctx)ctx.suspend();},600);},
+    next(){if(!on||!ctx)return;const now=ctx.currentTime;bus.gain.setTargetAtTime(0,now,.12);T=null;clearTimeout(fade);fade=setTimeout(()=>{if(on)startTrack(pickTrack());},500);},
+    setVolume(v){cfg.volume=v;if(out)out.gain.setTargetAtTime(v,ctx.currentTime,.1);},
+    jump(bar){step=bar*16;},
+    get playing(){return on;},get title(){return T?T.tr.title:'';},tracks:cfg.tracks};
+}
+/* "Now playing" banner, like a sports game's soundtrack */
+function nowPlaying(title,onSkip){let el=document.getElementById('np');if(!el){el=document.createElement('div');el.id='np';el.setAttribute('role','status');document.body.appendChild(el);}
+  el.innerHTML=`<span class="np-ic" aria-hidden="true">♪</span><span class="np-t"><small>Now playing</small>${title}</span><button type="button" class="np-skip" aria-label="Next track">Skip ⏭︎</button>`;
+  el.querySelector('.np-skip').onclick=e=>{e.stopPropagation();onSkip();};
+  el.classList.remove('np-hide');el.classList.add('np-show');clearTimeout(el._t);el._t=setTimeout(()=>{el.classList.remove('np-show');el.classList.add('np-hide');},3800);}
+
+/* ---------- storage ---------- */
+const KEY='qubitquest.v1';
+const PAR=[1,1,1,2,3,2,3,2,2,4,3,4,7];
+const HINTS=['Tap X, then tap a slot on the wire.','Put X on the top wire.','One H gate is enough.','Try H first, then Z.','H, then Z, then H.','H, then S.','Try H, then S, then H.','X on the top wire, then a CNOT with the top as control.','H on the top wire, then CNOT from top to bottom.','H on top and X on the bottom, then Z on top, then CNOT top to bottom.','H on top, then CNOT top to middle, and top to bottom.','Before the box: X on the bottom, then H on both. After the box: H on top.','After the box: H on both, X on both, CZ, then H on both.'];
+const store={get(d){try{const v=JSON.parse(localStorage.getItem(KEY));if(!v||typeof v!=='object'||Array.isArray(v))return d;const o={...d,...v};if(!o.stars||typeof o.stars!=='object')o.stars={};if(!o.circ||typeof o.circ!=='object')o.circ={};o.unlocked=Math.max(1,Math.min(LEVELS.length,+o.unlocked||1));return o;}catch(e){return d}},set(v){try{localStorage.setItem(KEY,JSON.stringify(v))}catch(e){}}};
+let progress=store.get({unlocked:1,stars:{},circ:{},sound:true,music:true});
+function complete(id,stars){progress.stars[id]=Math.max(progress.stars[id]||0,stars);progress.unlocked=Math.max(progress.unlocked,Math.min(LEVELS.length,id+1));store.set(progress);}
+function setSkill(k){progress.skill=k;if(k==='pro')progress.unlocked=LEVELS.length;store.set(progress);}
+const totalStars=()=>Object.values(progress.stars).reduce((a,b)=>a+b,0);
+const sandboxOpen=()=>progress.skill==='pro'||progress.unlocked>=9;
+
+/* ---------- sound ---------- */
+let AC=null;
+function tone(f,d=.1,type='sine',v=.08,when=0){if(!progress.sound)return;try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();const t=AC.currentTime+when,o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g).connect(AC.destination);o.start(t);o.stop(t+d+.02);}catch(e){}}
+const sfx={place:()=>tone(660,.07,'triangle',.1),remove:()=>tone(330,.07,'triangle',.08),solve:()=>[523,659,784,1047].forEach((f,i)=>tone(f,.22,'triangle',.09,i*.09)),
+  measure:()=>{for(let i=0;i<8;i++)tone(400+Math.random()*800,.04,'square',.03,i*.05);},bad:()=>tone(180,.18,'sawtooth',.05)};
+
+/* ---------- music: calm, curious, spacious ---------- */
+const TRACKS_QQ=[
+ {title:'Superposition Drift',bpm:70,key:50,scale:'dorian',prog:[[0,'m9'],[5,'7'],[-2,'maj9'],[3,'maj7']],chord:'pad',chordPat:'x...............',chordVol:.9,
+  arp:'bell',arpPat:'0..2..1..3..2...',arpOct:12,arpVol:.55,bass:'bass',bassPat:'x.......x.......',lead:'keys',mel:{density:.3,rhythm:'slow'},gain:1.3},
+ {title:'Phase Kickback',bpm:92,swing:.1,key:57,scale:'minor',prog:[[0,'m7'],[-4,'maj7'],[3,'maj7'],[-2,'7']],chord:'keys',chordPat:'x.....x.........',
+  arp:'pluck',arpPat:'0.1.2.3.2.1.3.2.',arpVol:.6,bass:'bass',bassPat:'x.....x...x.....',lead:'bell',mel:{density:.35},drums:{k:'x.........x.....',h:'..x...x...x...x.',r:'....x.......x...'},gain:1.1},
+ {title:'Entangled Lights',bpm:80,key:53,scale:'major',prog:[[0,'maj7'],[7,'6'],[9,'m7'],[5,'maj9']],chord:'strings',chordPat:'x...............',chordVol:.75,
+  arp:'piano',arpPat:'0212021202120212',arpOct:0,arpVol:.6,bass:'piano',bassPat:'x.......x.......',bassOct:12,lead:'piano',leadOct:12,mel:{density:.3,rhythm:'slow'},sparkle:'bell',gain:1.4},
+ {title:'Bloch Sphere Waltz',bpm:104,key:48,scale:'mixo',prog:[[0,'maj'],[-2,'maj'],[5,'maj'],[0,'maj']],chord:'harpsi',chordPat:'x...x...x.......',chordVol:.7,
+  bass:'harpsi',bassPat:'x...x...x...x...',bassOct:12,lead:'chip',leadOct:12,mel:{density:.5},arp:'bell',arpPat:'..0.....2.......',arpOct:24,arpVol:.4,gain:1.5}];
+const MUSIC=Jukebox({tracks:TRACKS_QQ,volume:.24,reverb:.38,onTrack:t=>nowPlaying(t,()=>MUSIC.next())});
+document.addEventListener('pointerdown',()=>{if(progress.music&&!MUSIC.playing)MUSIC.start();},true);
+function toggleMusic(){progress.music=!progress.music;store.set(progress);progress.music?MUSIC.start():MUSIC.stop();render();}
+
+/* ---------- shell ---------- */
+const app=document.getElementById('app');
+let screen='home',cur=null,P=null,modal=null,modalData=null,resetArm=false;
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const GEAR='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></svg>';
+const AUDIO=()=>`<button class="btn icon" id="mus" aria-label="Music ${progress.music?'on':'off'}" aria-pressed="${progress.music}" style="${progress.music?'':'opacity:.5'}">♫</button><button class="btn icon" id="snd" aria-label="Sound ${progress.sound?'on':'off'}" aria-pressed="${progress.sound}">${progress.sound?'🔊︎':'🔈︎'}</button>`;
+const starChip=()=>`<span class="chip"><span class="st">★</span>${totalStars()} / ${LEVELS.length*3}</span>`;
+const gateTile=(t,g=40)=>`<span class="gate ${t}" style="--g:${g}px" aria-hidden="true">${({CX:'⊕',CZ:'●',SW:'×',OR:'f',MK:'?'})[t]||t}</span>`;
+function go(s){screen=s;modal=null;render();scrollTo(0,0);}
+function render(){({home:renderHome,levels:renderLevels,lesson:renderLesson,lab:renderLab})[screen]();renderModal();}
+function bindCommon(){const on=(id,f)=>{const e=document.getElementById(id);if(e)e.onclick=f;};
+  on('snd',()=>{progress.sound=!progress.sound;store.set(progress);render();});on('mus',toggleMusic);on('settings',()=>{modal='settings';render();});
+  app.querySelectorAll('[data-act=levels]').forEach(b=>b.onclick=()=>go('levels'));app.querySelectorAll('[data-act=menu]').forEach(b=>b.onclick=()=>go('home'));}
+const topbar=(title,extra='',back='levels')=>`<div class="topbar"><button class="btn" data-act="${back}" aria-label="Back">←</button><span class="grow">${title}</span>${extra}${AUDIO()}</div>`;
+
+/* ---------- modals ---------- */
+function renderModal(){const old=document.getElementById('ov');if(old)old.remove();if(!modal)return;let h='';
+  if(modal==='welcome')h=`<h2>New to quantum computing?</h2><p class="muted">No maths needed. Your progress is saved on this device.</p>
+    <button class="mbtn" data-skill="new">Start from zero<small>13 short puzzles: qubits, phase, entanglement, then real algorithms</small></button>
+    <button class="mbtn" data-skill="pro">I know the basics<small>Open every level and the sandbox now</small></button>`;
+  if(modal==='settings')h=`<h2>Settings</h2>
+    <div class="setrow"><span>Music${MUSIC.playing&&MUSIC.title?`<small>♪ ${esc(MUSIC.title)}</small>`:''}</span><span style="display:flex;gap:8px;align-items:center">${progress.music?'<button class="btn" id="nexttr">Next track</button>':''}<button class="toggle" id="t-mus" aria-pressed="${progress.music}" aria-label="Music"></button></span></div>
+    <div class="setrow"><span>Sound effects</span><button class="toggle" id="t-snd" aria-pressed="${progress.sound}" aria-label="Sound effects"></button></div>
+    <div class="setrow"><span>Experience</span><div class="seg"><button data-skillset="new" aria-pressed="${progress.skill!=='pro'}">Learning</button><button data-skillset="pro" aria-pressed="${progress.skill==='pro'}">I know it</button></div></div>
+    <div class="setrow"><span>Progress<small>Saved in this browser</small></span><button class="btn danger" id="reset">${resetArm?'Tap again to erase':'Reset'}</button></div>
+    <div class="row"><button class="primary" id="closem">Done</button></div>`;
+  if(modal==='result')h=modalData.html;
+  const ov=document.createElement('div');ov.className='overlay';ov.id='ov';ov.innerHTML=`<div class="modal card" role="dialog" aria-modal="true">${h}</div>`;document.body.appendChild(ov);
+  const on=(id,f)=>{const e=ov.querySelector('#'+id);if(e)e.onclick=f;};
+  ov.onclick=e=>{if(e.target===ov&&modal!=='welcome'){modal=null;resetArm=false;render();}};
+  on('closem',()=>{modal=null;resetArm=false;render();});on('t-mus',toggleMusic);on('nexttr',()=>{MUSIC.next();setTimeout(render,700);});
+  on('t-snd',()=>{progress.sound=!progress.sound;store.set(progress);render();});
+  ov.querySelectorAll('[data-skillset]').forEach(b=>b.onclick=()=>{setSkill(b.dataset.skillset);render();});
+  ov.querySelectorAll('[data-skill]').forEach(b=>b.onclick=()=>{setSkill(b.dataset.skill);modal=null;if(b.dataset.skill==='new')openLevel(1);else render();});
+  on('reset',()=>{if(resetArm){progress={unlocked:1,stars:{},circ:{},sound:progress.sound,music:progress.music};store.set(progress);resetArm=false;modal=null;}else resetArm=true;render();});
+  if(modal==='result'&&modalData.bind)modalData.bind(ov);
+  if(!ov.contains(document.activeElement)){const f=ov.querySelector('button');if(f)f.focus({preventScroll:true});}}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal&&modal!=='welcome'){modal=null;resetArm=false;render();}});
+
+/* ---------- menu ---------- */
+const LOGO_SVG=`<svg viewBox="0 0 240 150" aria-hidden="true"><g fill="none" stroke="#1c2541" stroke-width="3">
+  <line x1="10" y1="45" x2="230" y2="45"/><line x1="10" y1="105" x2="230" y2="105"/><line x1="152" y1="45" x2="152" y2="105"/></g>
+  <rect x="62" y="22" width="46" height="46" rx="10" fill="#2f6fdb" stroke="#1c2541" stroke-width="3"/><text x="85" y="55" text-anchor="middle" font-family="Sora,sans-serif" font-weight="800" font-size="26" fill="#fff">H</text>
+  <circle cx="152" cy="45" r="8" fill="#1c2541"/><circle cx="152" cy="105" r="15" fill="#fff" stroke="#1c2541" stroke-width="3"/><path d="M152 92v26M139 105h26" stroke="#1c2541" stroke-width="3"/>
+  <g transform="translate(206 75)"><circle r="20" fill="#fff" stroke="#1c2541" stroke-width="3"/><circle r="14" fill="#0f9d8a"/><line x1="0" y1="0" x2="-8" y2="-11" stroke="#c2185b" stroke-width="3" stroke-linecap="round"/></g></svg>`;
+function renderHome(){const started=totalStars()>0,done=Object.keys(progress.stars).length;
+  const open=LEVELS.filter(l=>l.id<=progress.unlocked),nx=open.find(l=>!progress.stars[l.id])||open[open.length-1];
+  app.innerHTML=`<div class="menu"><div class="menubar">${starChip()}<span style="flex:1"></span>${AUDIO()}<button class="btn icon" id="settings" aria-label="Settings">${GEAR}</button></div>
+    <div class="menumain"><div class="brand">${LOGO_SVG}<h1 class="logo">Qubit <span>Quest</span></h1><p class="tag"><span class="bn">খেলতে খেলতে কোয়ান্টাম কম্পিউটিং</span>Build real quantum circuits, one gate at a time</p></div>
+      <div class="menubtns"><button class="mbtn play" id="cont">${started?'Continue':'Start'}<small>Level ${nx.id}<br>${esc(nx.title)}</small></button>
+        <button class="mbtn" id="sand" ${sandboxOpen()?'':'disabled'}>Sandbox<small>${sandboxOpen()?'Build any circuit, up to 3 qubits':'🔒 Unlocks at level 9'}</small></button>
+        <button class="mbtn" id="lv">Levels<small>${done} of ${LEVELS.length} solved</small></button></div></div></div>`;
+  bindCommon();const on=(id,f)=>{const e=document.getElementById(id);if(e)e.onclick=f;};
+  on('cont',()=>openLevel(nx.id));on('lv',()=>go('levels'));on('sand',openSandbox);
+  if(!progress.skill&&!started&&!modal)modal='welcome';}
+function renderLevels(){const groups=[...new Set(LEVELS.map(l=>l.group))],open=LEVELS.filter(l=>l.id<=progress.unlocked),nx=open.find(l=>!progress.stars[l.id]);
+  app.innerHTML=`${topbar('Levels',starChip(),'menu')}${groups.map(g=>{const ls=LEVELS.filter(l=>l.group===g),got=ls.reduce((a,l)=>a+(progress.stars[l.id]||0),0);
+    return `<section class="chapter card"><h2 class="chap">${gateTile(CHAP_ICON[g],34)}${g}<small>★ ${got} / ${ls.length*3}</small></h2><div class="track" style="--k:${ls.length}">${ls.map(l=>{const locked=l.id>progress.unlocked,s=progress.stars[l.id]||0,state=locked?'locked':nx&&l.id===nx.id?'now':s?'done':'open';
+      return `<button class="node ${state}" data-lvl="${l.id}" ${locked?'disabled':''} aria-label="Level ${l.id}: ${esc(l.title)}${locked?', locked':''}"><span class="disc">${locked?'🔒︎':l.id}</span><span class="nt">${esc(l.title)}</span><span class="stars">${'★'.repeat(s)}${'☆'.repeat(3-s)}</span></button>`;}).join('')}</div></section>`;}).join('')}
+    ${sandboxOpen()?'<button class="mbtn" id="sand" style="width:min(100%,390px)">Sandbox<small>Free building</small></button>':''}`;
+  bindCommon();app.querySelectorAll('[data-lvl]').forEach(b=>b.onclick=()=>openLevel(+b.dataset.lvl));const sb=document.getElementById('sand');if(sb)sb.onclick=openSandbox;}
+function openLevel(id){cur=LEVELS[id-1];go('lesson');}
+function renderLesson(){app.innerHTML=`${topbar(`Level ${cur.id}`)}<div class="lesson card"><h2>${esc(cur.title)}</h2>${cur.lesson}
+  <p><b>Goal:</b> ${esc(cur.goal)}</p><p class="muted">Gates you can use: ${cur.gates.map(t=>gateTile(t,30)).join(' ')}</p>
+  <div class="actions"><button class="primary" id="go">Start</button></div></div>`;bindCommon();document.getElementById('go').onclick=()=>startPuzzle(cur);}
+
+/* ---------- puzzle / sandbox ---------- */
+const TWO=t=>t==='CX'||t==='CZ'||t==='SW';
+const PNAME={X:'X (flip)',Y:'Y',Z:'Z (phase flip)',H:'H (superposition)',S:'S (quarter phase)',T:'T (eighth phase)',CX:'CNOT',CZ:'CZ',SW:'SWAP'};
+function startPuzzle(L){const fixed=(L.fixed||[]).map(f=>({...f.g,col:f.col,locked:true}));
+  const saved=(progress.circ[L.id]||[]).filter(g=>g&&typeof g.col==='number');
+  P={L,n:L.n,cols:L.cols,gates:fixed.concat(saved.map(g=>({...g,locked:false}))),sel:L.gates[0],pending:null,undo:[],shots:null,solved:false,sandbox:false,hintShown:false};
+  go('lab');}
+function openSandbox(){P={L:{id:0,title:'Sandbox',n:3,gates:['H','X','Y','Z','S','T','CX','CZ','SW'],cols:10},n:progress.sandN||2,cols:10,gates:(progress.sandbox||[]).filter(g=>g&&typeof g.col==='number'),sel:'H',pending:null,undo:[],shots:null,solved:false,sandbox:true};go('lab');}
+const rowsOf=g=>TWO(g.t)?(()=>{const a=Math.min(g.c,g.q),b=Math.max(g.c,g.q),r=[];for(let i=a;i<=b;i++)r.push(i);return r;})():g.t==='OR'||g.t==='MK'?[0,1]:[g.q];
+function gateAt(col,row){return P.gates.find(g=>g.col===col&&rowsOf(g).includes(row));}
+function circuitFor(variant){const cols=[];for(let c=0;c<P.cols;c++){cols.push(P.gates.filter(g=>g.col===c).map(g=>g.t==='OR'?{t:'OR',f:DEUTSCH_FS[variant??2]}:g.t==='MK'?{t:'MK',m:variant??3}:g));}return cols;}
+const playerCount=()=>P.gates.filter(g=>!g.locked).length;
+function evaluate(){const L=P.L;if(P.sandbox)return {ok:false};
+  if(L.kind==='deutsch'){const res=DEUTSCH_FS.map((f,k)=>{const v=run(circuitFor(k),P.n);const p1=probs(v).reduce((a,x,i)=>a+(bitOf(i,0,P.n)?x:0),0);return (f[0]!==f[1])?p1>0.999:p1<0.001;});return {ok:res.every(Boolean),pass:res.filter(Boolean).length,of:4};}
+  if(L.kind==='grover'){const res=[0,1,2,3].map(m=>probs(run(circuitFor(m),P.n))[m]>0.999);return {ok:res.every(Boolean),pass:res.filter(Boolean).length,of:4};}
+  return {ok:fidelity(run(circuitFor(),P.n),L.target)>0.999};}
+function persist(){const mine=P.gates.filter(g=>!g.locked).map(({locked,...g})=>g);if(P.sandbox){progress.sandbox=mine;progress.sandN=P.n;}else progress.circ[P.L.id]=mine;store.set(progress);}
+function change(fn){P.undo.push(JSON.stringify(P.gates));if(P.undo.length>60)P.undo.shift();fn();P.shots=null;persist();
+  const was=P.solved,ev=evaluate();P.solved=ev.ok;render();if(ev.ok&&!was)onSolved();}
+function tapCell(col,row){const g=gateAt(col,row);
+  if(P.pending){const pc=P.pending;P.pending=null;if(pc.col===col&&pc.row!==row&&!gateAt(col,row)){const rows=[];for(let i=Math.min(pc.row,row);i<=Math.max(pc.row,row);i++)rows.push(i);
+      if(rows.some(r=>r!==pc.row&&gateAt(col,r))){sfx.bad();P.msg='Something is in the way. Use an empty column.';render();return;}
+      sfx.place();P.msg='';return change(()=>P.gates.push({t:P.sel,c:pc.row,q:row,col}));}
+    P.msg='Pick the target in the same column.';render();return;}
+  if(g){if(g.locked){sfx.bad();P.msg='That gate is part of the puzzle and can\'t be moved.';render();return;}sfx.remove();P.msg='';return change(()=>{P.gates=P.gates.filter(x=>x!==g);});}
+  if(TWO(P.sel)){if(P.n<2){sfx.bad();return;}P.pending={col,row};P.msg=P.sel==='SW'?'Now tap the other qubit to swap with.':'Control set. Now tap the target in the same column.';sfx.place();render();return;}
+  if(P.L.noX1&&P.sel==='X'&&row!==0){sfx.bad();P.msg='In this level X only works on the top qubit. Use CNOT to reach the bottom one.';render();return;}
+  sfx.place();P.msg='';change(()=>P.gates.push({t:P.sel,q:row,col}));}
+function onSolved(){const L=P.L,n=playerCount(),par=PAR[L.id-1],stars=n<=par?3:n<=par+2?2:1;complete(L.id,stars);sfx.solve();
+  const shots=L.shots?`<p>Try <b>Measure 100×</b> to see what a real quantum computer would report.</p>`:'';
+  modalData={html:`<h2 style="text-align:center">Solved!</h2><div class="bigstars">${'★'.repeat(stars)}${'☆'.repeat(3-stars)}</div>
+    <p style="text-align:center">You used <b>${n}</b> gate${n===1?'':'s'}. The fewest possible is <b>${par}</b>.${n>par?' Try trimming it for 3 stars.':''}</p>${shots}
+    <div class="row" style="justify-content:center">${L.id<LEVELS.length?'<button class="primary" id="nx">Next level</button>':'<button class="primary" id="sb">Open the sandbox</button>'}<button class="btn" id="stay">Stay here</button></div>`,
+    bind:ov=>{const on=(id,f)=>{const e=ov.querySelector('#'+id);if(e)e.onclick=f;};on('nx',()=>openLevel(L.id+1));on('sb',openSandbox);on('stay',()=>{modal=null;render();});}};
+  setTimeout(()=>{if(screen==='lab'&&P&&P.L===L){modal='result';renderModal();}},450);}
+
+/* ---------- drawing ---------- */
+function circleSVG(a,tgt){const p=cabs2(a),R=30,r=R*Math.sqrt(p),ph=Math.atan2(a.im,a.re);
+  let s=`<svg viewBox="-36 -36 72 72" aria-hidden="true"><circle r="${R}" fill="#fff" stroke="#1c2541" stroke-width="2"/>`;
+  if(p>1e-6)s+=`<circle r="${r.toFixed(2)}" fill="var(--amp)" opacity=".9"/><line x1="0" y1="0" x2="${(-Math.sin(ph)*R).toFixed(2)}" y2="${(-Math.cos(ph)*R).toFixed(2)}" stroke="var(--phase)" stroke-width="3.2" stroke-linecap="round"/>`;
+  if(tgt){const pt=cabs2(tgt),rt=R*Math.sqrt(pt),pht=Math.atan2(tgt.im,tgt.re);if(pt>1e-6)s+=`<circle r="${rt.toFixed(2)}" fill="none" stroke="#1c2541" stroke-width="1.6" stroke-dasharray="3 3"/><line x1="0" y1="0" x2="${(-Math.sin(pht)*R).toFixed(2)}" y2="${(-Math.cos(pht)*R).toFixed(2)}" stroke="#1c2541" stroke-width="1.6" stroke-dasharray="3 3"/>`;}
+  return s+'</svg>';}
+function alignTarget(v,t){/* rotate the target's global phase to match the current state, so equal states look equal */
+  let re=0,im=0;for(let i=0;i<v.length;i++){re+=t[i].re*v[i].re+t[i].im*v[i].im;im+=t[i].re*v[i].im-t[i].im*v[i].re;}const m=Math.hypot(re,im);if(m<1e-9)return t;const ph=C(re/m,im/m);return t.map(a=>cmul(a,ph));}
+function proj(p){/* Bloch (x,y,z) -> screen: z up, y right, x toward the viewer */return [100+78*(0.94*p.y-0.34*p.x),100-78*(0.94*p.z-0.2*p.x)];}
+function blochSVG(v,t){const b=bloch(v),[x,y]=proj(b);let eq='',mer='';
+  for(let k=0;k<=48;k++){const a=k/48*2*Math.PI,[ex,ey]=proj({x:Math.cos(a),y:Math.sin(a),z:0}),[mx,my]=proj({x:Math.cos(a),y:0,z:Math.sin(a)});eq+=(k?'L':'M')+ex.toFixed(1)+' '+ey.toFixed(1);mer+=(k?'L':'M')+mx.toFixed(1)+' '+my.toFixed(1);}
+  const lab=(p,txt,dx=0,dy=0)=>{const [lx,ly]=proj(p);return `<text x="${(lx+dx).toFixed(1)}" y="${(ly+dy).toFixed(1)}" text-anchor="middle" font-family="Sora,sans-serif" font-weight="700" font-size="12" fill="#5b6785">${txt}</text>`;};
+  let tg='';if(t){const bt=bloch(t),[tx,ty]=proj(bt);tg=`<line x1="100" y1="100" x2="${tx.toFixed(1)}" y2="${ty.toFixed(1)}" stroke="#c2185b" stroke-width="2.2" stroke-dasharray="5 4"/><circle cx="${tx.toFixed(1)}" cy="${ty.toFixed(1)}" r="6" fill="none" stroke="#c2185b" stroke-width="2"/>`;}
+  return `<svg viewBox="0 0 200 200" role="img" aria-label="Bloch sphere. Arrow at x ${b.x.toFixed(2)}, y ${b.y.toFixed(2)}, z ${b.z.toFixed(2)}"><circle cx="100" cy="100" r="78" fill="#fff" stroke="#1c2541" stroke-width="2"/>
+    <path d="${eq}" fill="none" stroke="#c9d6e8" stroke-width="1.5"/><path d="${mer}" fill="none" stroke="#c9d6e8" stroke-width="1.5"/>
+    <line x1="100" y1="22" x2="100" y2="178" stroke="#c9d6e8" stroke-width="1.2"/>
+    ${lab({x:0,y:0,z:1},'|0⟩',0,-6)}${lab({x:0,y:0,z:-1},'|1⟩',0,16)}${lab({x:1,y:0,z:0},'|+⟩',-10,12)}${lab({x:-1,y:0,z:0},'|−⟩',10,-4)}${lab({x:0,y:1,z:0},'+i',12,4)}${lab({x:0,y:-1,z:0},'−i',-12,4)}
+    ${tg}<line x1="100" y1="100" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="#1c2541" stroke-width="3.5" stroke-linecap="round"/><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="7" fill="#0f9d8a" stroke="#1c2541" stroke-width="2"/><circle cx="100" cy="100" r="3" fill="#1c2541"/></svg>`;}
+const METER='<svg viewBox="0 0 28 22" aria-hidden="true"><rect x="1" y="1" width="26" height="20" rx="4" fill="#fff" stroke="#1c2541" stroke-width="2"/><path d="M6 16a8 8 0 0 1 16 0" fill="none" stroke="#1c2541" stroke-width="2"/><path d="M14 16l5-7" stroke="#c2185b" stroke-width="2" stroke-linecap="round"/></svg>';
+
+function cellSize(){const w=Math.min(innerWidth,1120)-28,land=innerWidth>innerHeight&&innerWidth>=700,avail=(land||innerWidth>=860?w*0.55:w)-24-40-34;return Math.max(38,Math.min(58,Math.floor(avail/P.cols)));}
+function renderLab(){const L=P.L,n=P.n,cell=cellSize();document.documentElement.style.setProperty('--cell',cell+'px');
+  const variant=L.kind==='deutsch'?2:L.kind==='grover'?3:undefined,v=run(circuitFor(variant),n);
+  const tgt=L.target&&!P.sandbox?alignTarget(v,L.target):null,ev=evaluate(),p=probs(v);
+  /* circuit */
+  let cols='';for(let c=0;c<P.cols;c++){let cells='',vline='';const twos=P.gates.filter(g=>g.col===c&&(TWO(g.t)||g.t==='OR'||g.t==='MK'));
+    for(const g of twos){const a=Math.min(g.c??0,g.q??1),b=Math.max(g.c??0,g.q??1);vline+=`<div class="vline" style="top:${(a+.5)*cell}px;height:${(b-a)*cell}px"></div>`;}
+    for(let r=0;r<n;r++){const g=gateAt(c,r);let inner='',label=`Qubit ${r}, step ${c+1}, empty`;
+      if(g){if(TWO(g.t)){if(g.t==='SW')inner='<span class="swp">×</span>';else if(r===g.c)inner='<span class="ctrl"></span>';else if(r===g.q)inner=g.t==='CX'?'<span class="targ">+</span>':'<span class="ctrl"></span>';else inner='';label=`Qubit ${r}, step ${c+1}: ${PNAME[g.t]} ${r===g.c?'control':r===g.q?'target':'line'}${g.locked?'':', tap to remove'}`;}
+        else if(g.t==='OR'||g.t==='MK'){inner=r===0?gateTile(g.t,cell*.74):'';label=`Step ${c+1}: the puzzle's ${g.t==='OR'?'mystery function f':'marking box'} (fixed)`;}
+        else{inner=gateTile(g.t,cell*.74);label=`Qubit ${r}, step ${c+1}: ${PNAME[g.t]||g.t}${g.locked?' (fixed)':', tap to remove'}`;}}
+      const pend=P.pending&&P.pending.col===c&&P.pending.row===r;
+      cells+=`<button class="cell ${g&&g.locked?'locked':''} ${pend?'pending':''}" data-col="${c}" data-row="${r}" aria-label="${esc(label)}">${pend?'<span class="ctrl"></span>':inner}</button>`;}
+    cols+=`<div class="col">${vline}${cells}</div>`;}
+  const labels=Array.from({length:n},(_,r)=>`<div>q${r} <span class="muted" style="font-weight:500">&nbsp;|0⟩</span></div>`).join('');
+  const ends=Array.from({length:n},()=>`<div>${METER}</div>`).join('');
+  const palette=L.gates.map(t=>`<button class="pg" data-g="${t}" aria-pressed="${P.sel===t}" aria-label="${PNAME[t]||t}" title="${PNAME[t]||t}">${gateTile(t,46)}</button>`).join('');
+  /* state view */
+  const circles=v.map((a,i)=>`<div class="circ ${tgt&&cabs2(tgt[i])>0.01&&Math.hypot(a.re-tgt[i].re,a.im-tgt[i].im)<.03?'hit':''}">${circleSVG(a,tgt&&tgt[i])}<span class="ket">${ket(i,n)}</span><span class="pct">${Math.round(p[i]*100)}%</span></div>`).join('');
+  const hist=P.shots?`<div class="hist" aria-label="Measurement results">${P.shots.map((k,i)=>`<div class="bar"><span class="ket">${ket(i,n)}</span><span style="--w:${k}%"></span><span>${k}</span></div>`).join('')}</div>`:'';
+  const status=P.sandbox?'':ev.ok?'<span class="status ok">✓ Target reached</span>':ev.of?`<span class="status">Works for ${ev.pass} of ${ev.of} hidden cases</span>`:'';
+  const dots=P.sandbox?'':`<span class="chip" title="Gates used / fewest possible">${playerCount()} / ${PAR[L.id-1]} gates</span>`;
+  const nSel=P.sandbox?`<div class="seg" role="group" aria-label="Number of qubits">${[1,2,3].map(k=>`<button data-n="${k}" aria-pressed="${n===k}">${k} qubit${k>1?'s':''}</button>`).join('')}</div>`:'';
+  app.innerHTML=`${topbar(P.sandbox?'Sandbox':`${L.id}. ${esc(L.title)}`,dots,P.sandbox?'menu':'levels')}
+  <div class="lab">
+    <div class="goal card ${ev.ok?'solved-banner':''}"><div class="txt">${P.sandbox?'<b>Build anything.</b> <span class="muted">Every gate is available. Watch how the state changes.</span>':`<b>${esc(L.goal)}</b>`}<div>${status} ${P.msg?`<span class="muted">${esc(P.msg)}</span>`:''}</div></div>${nSel}</div>
+    <div><div class="circuit card"><div class="wires"><div class="labels">${labels}</div>${cols}<div class="end">${ends}</div></div>
+      <div class="palette">${palette}<span class="hint">${TWO(P.sel)?'Tap a slot for the control, then another in the same column for the target.':'Pick a gate, then tap a slot. Tap a placed gate to remove it.'}</span></div></div>
+      <div class="tools"><button class="btn" id="undo" ${P.undo.length?'':'disabled'}>Undo</button><button class="btn" id="clear" ${playerCount()?'':'disabled'}>Clear</button><button class="btn" id="meas">Measure 100×</button>${P.sandbox?'':'<button class="btn" id="hint">Hint</button><button class="link" id="relesson">Read the lesson</button>'}</div></div>
+    <div class="state card"><h3>The state you've made<small>${L.kind==='deutsch'?'shown for f(x)=x':L.kind==='grover'?'shown with |11⟩ marked':tgt?'dashed = target':''}</small></h3>
+      <div class="viz ${n===1?'one':''}">${n===1?`<div class="bloch">${blochSVG(v,tgt)}</div>`:''}<div class="circles">${circles}</div></div>
+      <div class="legend"><span><i style="background:var(--amp)"></i>fill = chance of measuring it</span><span><i style="background:var(--phase)"></i>needle = phase</span></div>${hist}</div>
+  </div>`;
+  bindCommon();
+  app.querySelectorAll('.cell').forEach(b=>b.onclick=()=>tapCell(+b.dataset.col,+b.dataset.row));
+  app.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{P.sel=b.dataset.g;P.pending=null;P.msg='';render();});
+  app.querySelectorAll('[data-n]').forEach(b=>b.onclick=()=>{const k=+b.dataset.n;if(k===P.n)return;change(()=>{P.n=k;P.gates=P.gates.filter(g=>rowsOf(g).every(r=>r<k));});});
+  const on=(id,f)=>{const e=document.getElementById(id);if(e)e.onclick=f;};
+  on('undo',()=>{const s=P.undo.pop();if(!s)return;P.gates=JSON.parse(s);P.shots=null;persist();P.solved=evaluate().ok;sfx.remove();render();});
+  on('clear',()=>change(()=>{P.gates=P.gates.filter(g=>g.locked);}));
+  on('meas',()=>{P.shots=sample(run(circuitFor(variant),P.n),100);sfx.measure();render();});
+  on('hint',()=>{P.msg='Hint: '+HINTS[L.id-1];render();});on('relesson',()=>go('lesson'));}
+
+addEventListener('resize',()=>{clearTimeout(window.__rt);window.__rt=setTimeout(()=>{if(screen==='lab')render();},120);});
+render();
+}
+</script>
+</body>
+</html>
